@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+/// Simple page to display when an unknown route is accessed.
 class UnknownRoutePage extends StatelessWidget {
-  const UnknownRoutePage({this.routeName});
+  const UnknownRoutePage({super.key, this.routeName});
 
+  /// The name of the route that was attempted to be accessed.
   final String? routeName;
 
   @override
