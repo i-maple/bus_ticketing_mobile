@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'config/app_router.dart';
+import 'config/theme/app_theme.dart';
 
 void main() {
   runApp(const ProviderScope(child: TicketBookingApp()));
@@ -16,9 +17,7 @@ class TicketBookingApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Ticket Booking',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: AppTheme.dark,
       routerConfig: appRouter,
     );
   }
