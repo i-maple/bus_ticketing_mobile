@@ -1,0 +1,15 @@
+{
+  "layoutType": "2+2",
+  "rows": 10,
+  "columns": 4,
+  "seats": [
+    { "seatNumber": "1A", "state": "available", "price": 450 },
+    { "seatNumber": "1B", "state": "booked", "price": 450 },
+    { "seatNumber": "1C", "state": "available", "price": 450 },
+    { "seatNumber": "1D", "state": "available", "price": 450 },
+    { "seatNumber": "2A", "state": "available", "price": 450 },
+    { "seatNumber": "2B", "state": "booked", "price": 450 },
+    { "seatNumber": "2C", "state": "available", "price": 450 },
+    { "seatNumber": "2D", "state": "selected", "price": 450 }
+  ]
+}
