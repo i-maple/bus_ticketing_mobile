@@ -43,11 +43,19 @@ abstract final class AppColors {
   static const Color backgroundElevated = Color(0xFF18181F);
   static const Color backgroundModal = Color(0xFF1C1C26);
 
+  static const Color lightBackground = Color(0xFFF7F8FC);
+  static const Color lightBackgroundCard = Color(0xFFFFFFFF);
+  static const Color lightBackgroundElevated = Color(0xFFF1F3FA);
+  static const Color lightBackgroundModal = Color(0xFFFFFFFF);
+
   static const Color surface = Color(0xFF1A1A24);
   static const Color surfaceVariant = Color(0xFF22222E);
 
   static const Color divider = Color(0x12FFFFFF);
   static const Color dividerStrong = Color(0x24FFFFFF);
+
+  static const Color lightDivider = Color(0x1F1E2230);
+  static const Color lightDividerStrong = Color(0x33232A3B);
 
   static const Color textPrimary = Color(0xFFF0F0F5);
   static const Color textSecondary = Color(0xFF8B8FA8);
@@ -56,6 +64,12 @@ abstract final class AppColors {
   static const Color textInverse = Color(0xFF0A0A0F);
   static const Color textOnPrimary = Color(0xFFFFFFFF);
   static const Color textOnAccent = Color(0xFFFFFFFF);
+
+  static const Color lightTextPrimary = Color(0xFF151828);
+  static const Color lightTextSecondary = Color(0xFF4A4F66);
+  static const Color lightTextMuted = Color(0xFF767B93);
+  static const Color lightTextDisabled = Color(0xFFA2A7BC);
+  static const Color lightTextInverse = Color(0xFFFFFFFF);
 
   static const Color footerBackground = Color(0xFF0F0F18);
   static const Color footerBorder = Color(0x1AFFFFFF);

@@ -17,7 +17,9 @@ class TicketBookingApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Ticket Booking',
-      theme: AppTheme.dark,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       routerConfig: appRouter,
     );
   }
