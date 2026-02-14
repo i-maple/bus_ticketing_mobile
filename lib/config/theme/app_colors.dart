@@ -76,6 +76,11 @@ abstract final class AppColors {
   static const Color priceHighlight = Color(0xFF7C6FFF);
 
   static const Color shadowDeep = Color(0x99000000);
+  static const Color shadowLow = Color(0x33000000);
+  static const Color shadowMid = Color(0x4D000000);
+  static const Color shadowHigh = Color(0x66000000);
+  static const Color shadowCard = Color(0x3D000000);
+  static const Color shadowCardTint = Color(0x0A786FFF);
   static const Color glowPrimary = Color(0x40786FFF);
   static const Color glowSuccess = Color(0x404ECDC4);
 

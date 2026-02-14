@@ -58,7 +58,11 @@ abstract final class AppTheme {
         backgroundColor: AppColors.lightBackgroundModal,
         surfaceTintColor: Colors.transparent,
       ),
-      textTheme: AppTextTheme.light,
+      textTheme: AppTypography.textTheme.apply(
+        bodyColor: AppColors.lightTextPrimary,
+        displayColor: AppColors.lightTextPrimary,
+        decorationColor: AppColors.lightTextSecondary,
+      ),
     );
   }
 
@@ -114,7 +118,7 @@ abstract final class AppTheme {
         backgroundColor: AppColors.footerBackground,
         surfaceTintColor: Colors.transparent,
       ),
-      textTheme: AppTextTheme.dark,
+      textTheme: AppTypography.textTheme,
     );
   }
 }
