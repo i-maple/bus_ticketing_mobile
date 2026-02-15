@@ -15,7 +15,9 @@ import '../../features/home/domain/repositories/ticket_search_repository.dart';
 import '../../features/home/domain/usecases/get_home_dashboard_usecase.dart';
 import '../../features/home/domain/usecases/get_my_tickets_usecase.dart';
 import '../../features/home/domain/usecases/get_settings_usecase.dart';
+import '../../features/home/domain/usecases/get_dark_mode_preference_usecase.dart';
 import '../../features/home/domain/usecases/search_tickets_usecase.dart';
+import '../../features/home/domain/usecases/set_dark_mode_preference_usecase.dart';
 import '../../features/seat_selection/data/data_sources/local/seat_selection_local_data_source.dart';
 import '../../features/seat_selection/data/repositories/seat_selection_repository_impl.dart';
 import '../../features/seat_selection/domain/repositories/seat_selection_repository.dart';
@@ -114,7 +116,10 @@ Future<void> configureDependencies() async {
 
   if (!sl.isRegistered<HomeOverviewLocalDataSource>()) {
     sl.registerLazySingleton<HomeOverviewLocalDataSource>(
-      () => HomeOverviewLocalDataSourceImpl(sl<GraphQLClient>()),
+      () => HomeOverviewLocalDataSourceImpl(
+        sl<GraphQLClient>(),
+        sl<HiveService>(),
+      ),
     );
   }
 
@@ -139,6 +144,18 @@ Future<void> configureDependencies() async {
   if (!sl.isRegistered<GetSettingsUseCase>()) {
     sl.registerLazySingleton<GetSettingsUseCase>(
       () => GetSettingsUseCase(sl<HomeOverviewRepository>()),
+    );
+  }
+
+  if (!sl.isRegistered<GetDarkModePreferenceUseCase>()) {
+    sl.registerLazySingleton<GetDarkModePreferenceUseCase>(
+      () => GetDarkModePreferenceUseCase(sl<HomeOverviewRepository>()),
+    );
+  }
+
+  if (!sl.isRegistered<SetDarkModePreferenceUseCase>()) {
+    sl.registerLazySingleton<SetDarkModePreferenceUseCase>(
+      () => SetDarkModePreferenceUseCase(sl<HomeOverviewRepository>()),
     );
   }
 }

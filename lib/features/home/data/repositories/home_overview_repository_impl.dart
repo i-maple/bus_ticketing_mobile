@@ -54,4 +54,28 @@ class HomeOverviewRepositoryImpl implements HomeOverviewRepository {
       return Left(UnknownFailure('Unexpected error: $error'));
     }
   }
+
+  @override
+  Future<Either<Failure, bool?>> getDarkModePreference() async {
+    try {
+      final value = await _localDataSource.getDarkModePreference();
+      return Right(value);
+    } on CacheException catch (error) {
+      return Left(CacheFailure(error.message, code: error.code));
+    } catch (error) {
+      return Left(UnknownFailure('Unexpected error: $error'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> setDarkModePreference(bool enabled) async {
+    try {
+      await _localDataSource.setDarkModePreference(enabled);
+      return const Right(null);
+    } on CacheException catch (error) {
+      return Left(CacheFailure(error.message, code: error.code));
+    } catch (error) {
+      return Left(UnknownFailure('Unexpected error: $error'));
+    }
+  }
 }

@@ -124,7 +124,8 @@ class _HomeSearchSectionState extends ConsumerState<HomeSearchSection> {
         Align(
           child: IconButton.filledTonal(
             onPressed: _swapCities,
-            icon: const Icon(Icons.swap_vert),
+            icon: Icon(Icons.swap_vert, color: Theme.of(context).colorScheme.primary),
+            color: Theme.of(context).colorScheme.primaryContainer,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),

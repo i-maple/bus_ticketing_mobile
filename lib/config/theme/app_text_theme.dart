@@ -19,7 +19,8 @@ abstract final class AppTypography {
   // ─── Base TextTheme ───────────────────────────────────────────────────────
 
   /// Call this inside [ThemeData.textTheme] to wire up Google Fonts globally.
-  static TextTheme get textTheme => GoogleFonts.syneTextTheme(
+  static TextTheme get textTheme =>
+      GoogleFonts.syneTextTheme(
         const TextTheme(
           // M3 role → Syne mapping
           displayLarge: _rawDisplayXl,
@@ -141,207 +142,187 @@ abstract final class AppTypography {
   );
 
   static TextStyle get displayHero => GoogleFonts.dmSerifDisplay(
-        fontSize: 48,
-        fontWeight: FontWeight.w400,
-        letterSpacing: -1.5,
-        height: 1.1,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 48,
+    fontWeight: FontWeight.w400,
+    letterSpacing: -1.5,
+    height: 1.1,
+  );
 
   static TextStyle get displayPrice => GoogleFonts.dmSerifDisplay(
-        fontSize: 36,
-        fontWeight: FontWeight.w400,
-        letterSpacing: -0.5,
-        height: 1.15,
-        color: AppColors.primary,
-      );
+    fontSize: 36,
+    fontWeight: FontWeight.w400,
+    letterSpacing: -0.5,
+    height: 1.15,
+    color: AppColors.primary,
+  );
 
   static TextStyle get displaySection => GoogleFonts.dmSerifDisplay(
-        fontSize: 28,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0,
-        height: 1.25,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 28,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0,
+    height: 1.25,
+  );
 
   // Headings — Syne bold
   static TextStyle get headingXl => GoogleFonts.syne(
-        fontSize: 28,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.3,
-        height: 1.25,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 28,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.3,
+    height: 1.25,
+  );
 
   static TextStyle get headingLg => GoogleFonts.syne(
-        fontSize: 22,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.2,
-        height: 1.3,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 22,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.2,
+    height: 1.3,
+  );
 
   static TextStyle get headingMd => GoogleFonts.syne(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0,
-        height: 1.35,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0,
+    height: 1.35,
+  );
 
   static TextStyle get headingSm => GoogleFonts.syne(
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0,
-        height: 1.4,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0,
+    height: 1.4,
+  );
 
   // Titles (card headers, section labels)
   static TextStyle get titleLg => GoogleFonts.syne(
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.2,
-        height: 1.4,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0.2,
+    height: 1.4,
+  );
 
   static TextStyle get titleMd => GoogleFonts.syne(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.2,
-        height: 1.45,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.2,
+    height: 1.45,
+  );
 
   static TextStyle get titleSm => GoogleFonts.syne(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.3,
-        height: 1.45,
-        color: AppColors.textSecondary,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.3,
+    height: 1.45,
+  );
 
   // Body
   static TextStyle get bodyLg => GoogleFonts.syne(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0,
-        height: 1.6,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0,
+    height: 1.6,
+  );
 
   static TextStyle get bodyMd => GoogleFonts.syne(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.1,
-        height: 1.6,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.1,
+    height: 1.6,
+  );
 
   static TextStyle get bodySm => GoogleFonts.syne(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.2,
-        height: 1.65,
-        color: AppColors.textSecondary,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.2,
+    height: 1.65,
+  );
 
   static TextStyle get bodyXs => GoogleFonts.syne(
-        fontSize: 11,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.2,
-        height: 1.6,
-        color: AppColors.textMuted,
-      );
+    fontSize: 11,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.2,
+    height: 1.6,
+  );
 
   // Labels (buttons, chips, badges, ALL CAPS optional)
   static TextStyle get labelLg => GoogleFonts.syne(
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.8,
-        height: 1.0,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0.8,
+    height: 1.0,
+  );
 
   static TextStyle get labelMd => GoogleFonts.syne(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.6,
-        height: 1.0,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0.6,
+    height: 1.0,
+  );
 
   static TextStyle get labelSm => GoogleFonts.syne(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.5,
-        height: 1.0,
-        color: AppColors.textSecondary,
-      );
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0.5,
+    height: 1.0,
+  );
 
   static TextStyle get labelCaps => GoogleFonts.syne(
-        fontSize: 10,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1.2,
-        height: 1.0,
-        color: AppColors.textSecondary,
-      );
+    fontSize: 10,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 1.2,
+    height: 1.0,
+  );
 
   // Monospaced — seat codes, prices, IDs
   static TextStyle get monoLg => GoogleFonts.dmMono(
-        fontSize: 18,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0,
-        height: 1.3,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0,
+    height: 1.3,
+  );
 
   static TextStyle get monoMd => GoogleFonts.dmMono(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0,
-        height: 1.4,
-        color: AppColors.textPrimary,
-      );
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0,
+    height: 1.4,
+  );
 
   static TextStyle get monoSm => GoogleFonts.dmMono(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0,
-        height: 1.4,
-        color: AppColors.textSecondary,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0,
+    height: 1.4,
+  );
 
   // Seat cell label (tight, centered in 44pt cell)
   static TextStyle get seatLabel => GoogleFonts.dmMono(
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0,
-        height: 1.0,
-      );
+    fontSize: 11,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0,
+    height: 1.0,
+  );
 
   // Price in the sticky footer
   static TextStyle get priceTotal => GoogleFonts.dmSerifDisplay(
-        fontSize: 32,
-        fontWeight: FontWeight.w400,
-        letterSpacing: -0.5,
-        height: 1.0,
-        color: AppColors.primary,
-      );
+    fontSize: 32,
+    fontWeight: FontWeight.w400,
+    letterSpacing: -0.5,
+    height: 1.0,
+    color: AppColors.primary,
+  );
 
   static TextStyle get priceCurrency => GoogleFonts.dmMono(
-        fontSize: 18,
-        fontWeight: FontWeight.w500,
-        height: 1.0,
-        color: AppColors.primary,
-      );
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+    height: 1.0,
+    color: AppColors.primary,
+  );
 
   /// Returns a copy of [style] with color overridden for [brightness].
   static TextStyle forBrightness(TextStyle style, Brightness brightness) =>
       style.copyWith(
         color: brightness == Brightness.dark
             ? AppColors.textPrimary
-            : AppColors.textInverse,
+            : AppColors.lightTextPrimary,
       );
 }

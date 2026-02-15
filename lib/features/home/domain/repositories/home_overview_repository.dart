@@ -11,4 +11,8 @@ abstract class HomeOverviewRepository {
   Future<Either<Failure, List<MyTicketEntity>>> getMyTickets();
 
   Future<Either<Failure, SettingsEntity>> getSettings();
+
+  Future<Either<Failure, bool?>> getDarkModePreference();
+
+  Future<Either<Failure, void>> setDarkModePreference(bool enabled);
 }

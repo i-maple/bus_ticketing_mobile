@@ -1,6 +1,8 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 
+import '../../../../../config/app_config.dart';
 import '../../../../../core/error/exceptions.dart';
+import '../../../../../core/storage/hive_service.dart';
 import '../../models/home_dashboard_model.dart';
 import '../../models/my_ticket_model.dart';
 import '../../models/settings_model.dart';
@@ -11,12 +13,17 @@ abstract class HomeOverviewLocalDataSource {
   Future<List<MyTicketModel>> getMyTickets();
 
   Future<SettingsModel> getSettings();
+
+  Future<bool?> getDarkModePreference();
+
+  Future<void> setDarkModePreference(bool enabled);
 }
 
 class HomeOverviewLocalDataSourceImpl implements HomeOverviewLocalDataSource {
-  HomeOverviewLocalDataSourceImpl(this._client);
+  HomeOverviewLocalDataSourceImpl(this._client, this._hiveService);
 
   final GraphQLClient _client;
+  final HiveService _hiveService;
 
   @override
   Future<HomeDashboardModel> getHomeDashboard() async {
@@ -103,6 +110,28 @@ class HomeOverviewLocalDataSourceImpl implements HomeOverviewLocalDataSource {
     final raw = result.data?['settings'] as Map<dynamic, dynamic>?;
     if (raw == null) throw ParsingException('Invalid settings payload');
 
-    return SettingsModel.fromJson(Map<String, dynamic>.from(raw));
+    final model = SettingsModel.fromJson(Map<String, dynamic>.from(raw));
+    final darkModePreference = await getDarkModePreference();
+
+    if (darkModePreference == null) {
+      return model;
+    }
+
+    return SettingsModel(
+      userName: model.userName,
+      email: model.email,
+      notificationsEnabled: model.notificationsEnabled,
+      darkModeEnabled: darkModePreference,
+    );
+  }
+
+  @override
+  Future<bool?> getDarkModePreference() async {
+    return _hiveService.read<bool>(AppConfig.darkModeEnabledKey);
+  }
+
+  @override
+  Future<void> setDarkModePreference(bool enabled) async {
+    await _hiveService.write(AppConfig.darkModeEnabledKey, enabled);
   }
 }

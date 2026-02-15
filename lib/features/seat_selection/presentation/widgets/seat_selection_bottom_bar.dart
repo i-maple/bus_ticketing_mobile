@@ -16,6 +16,7 @@ class SeatSelectionBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final seatsText = selectedSeats.isEmpty
         ? 'No seat selected'
         : selectedSeats.join(', ');
@@ -23,8 +24,8 @@ class SeatSelectionBottomBar extends StatelessWidget {
     return Container(
       padding: AppSpacing.pricingBarPadding,
       decoration: BoxDecoration(
-        color: AppColors.footerBackground,
-        border: Border(top: BorderSide(color: AppColors.footerBorder)),
+        color: colorScheme.surface,
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
         boxShadow: AppShadows.footer,
       ),
       child: SafeArea(
@@ -42,10 +43,7 @@ class SeatSelectionBottomBar extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'Rs. $totalPrice',
-                    style: AppTypography.priceTotal,
-                  ),
+                  Text('Rs. $totalPrice', style: AppTypography.priceTotal),
                 ],
               ),
             ),

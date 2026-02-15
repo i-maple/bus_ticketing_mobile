@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../config/theme/theme.dart';
 import '../../domain/entities/my_ticket_entity.dart';
 import '../providers/home_overview_provider.dart';
+import '../providers/theme_mode_provider.dart';
 import '../widgets/home_search_section.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -67,7 +68,6 @@ class _HomeTab extends ConsumerWidget {
     );
   }
 }
-
 
 class _TicketsTab extends ConsumerWidget {
   const _TicketsTab();
@@ -149,6 +149,8 @@ class _SettingsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider);
+    final currentThemeMode = ref.watch(themeModeControllerProvider);
+    final themeModeNotifier = ref.read(themeModeControllerProvider.notifier);
 
     return settings.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -173,8 +175,8 @@ class _SettingsTab extends ConsumerWidget {
             title: const Text('Notifications'),
           ),
           SwitchListTile(
-            value: data.darkModeEnabled,
-            onChanged: null,
+            value: currentThemeMode == ThemeMode.dark,
+            onChanged: (value) => themeModeNotifier.setDarkMode(value),
             title: const Text('Dark Mode'),
           ),
         ],

@@ -7,6 +7,7 @@ abstract final class AppConfig {
   static const String onboardingCompletedKey = 'onboarding_completed';
   static const String bookedTicketsJsonKey = 'booked_tickets_json';
   static const String ticketOptionsJsonKey = 'ticket_options_json';
+  static const String darkModeEnabledKey = 'dark_mode_enabled';
 
   static const String seatPlanAssetPath = 'assets/mock/seat_plan.json';
   static const String ticketOptionsAssetPath = 'assets/mock/ticket_options.json';

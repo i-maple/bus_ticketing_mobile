@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'config/app_router.dart';
 import 'config/theme/app_theme.dart';
 import 'core/di/injector.dart';
+import 'features/home/presentation/providers/theme_mode_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,12 +41,13 @@ class TicketBookingApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appRouter = ref.watch(appRouterProvider);
+    final themeMode = ref.watch(themeModeControllerProvider);
 
     return MaterialApp.router(
       title: 'Ticket Booking',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: appRouter,
     );
   }

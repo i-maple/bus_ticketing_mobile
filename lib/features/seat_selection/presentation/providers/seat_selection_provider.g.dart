@@ -154,7 +154,7 @@ final class SeatSelectionNotifierProvider
 }
 
 String _$seatSelectionNotifierHash() =>
-    r'24efb0d398a6703a84154d6147f718d95c263ccf';
+    r'02ad6f3119c2768b35334cc2c701c2bc6f9ddbc9';
 
 final class SeatSelectionNotifierFamily extends $Family
     with
