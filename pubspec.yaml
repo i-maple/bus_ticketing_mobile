@@ -76,6 +76,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/mock/seat_plan.json
+    - assets/mock/ticket_options.json
+    - assets/mock/home_overview.json
     - assets/lottie/
 
   # To add assets to your application, add an assets section, like this:
