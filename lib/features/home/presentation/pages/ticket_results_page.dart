@@ -10,33 +10,75 @@ import '../models/trip_search_criteria.dart';
 import '../providers/ticket_results_provider.dart';
 import '../widgets/ticket_results_empty_state.dart';
 
-class TicketResultsPage extends ConsumerWidget {
-  const TicketResultsPage({
-    super.key,
-    required this.criteria,
-  });
+class TicketResultsPage extends ConsumerStatefulWidget {
+  const TicketResultsPage({super.key, required this.criteria});
 
   final TripSearchCriteria criteria;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final dateText = MaterialLocalizations.of(context).formatFullDate(criteria.date);
-    final state = ref.watch(ticketResultsProvider(criteria));
+  ConsumerState<TicketResultsPage> createState() => _TicketResultsPageState();
+}
 
-    ref.listen<TicketResultsState>(ticketResultsProvider(criteria), (
+class _TicketResultsPageState extends ConsumerState<TicketResultsPage> {
+  late TripSearchCriteria _criteria;
+
+  @override
+  void initState() {
+    super.initState();
+    _criteria = widget.criteria;
+  }
+
+  void _shiftDate(int days) {
+    setState(() {
+      _criteria = TripSearchCriteria(
+        departureCity: _criteria.departureCity,
+        destinationCity: _criteria.destinationCity,
+        date: _criteria.date.add(Duration(days: days)),
+      );
+    });
+  }
+
+  void _swapRoute() {
+    setState(() {
+      _criteria = TripSearchCriteria(
+        departureCity: _criteria.destinationCity,
+        destinationCity: _criteria.departureCity,
+        date: _criteria.date,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dateText = MaterialLocalizations.of(
+      context,
+    ).formatFullDate(_criteria.date);
+    final state = ref.watch(ticketResultsProvider(_criteria));
+
+    ref.listen<TicketResultsState>(ticketResultsProvider(_criteria), (
       previous,
       next,
     ) {
-      if (next.errorMessage == null || next.errorMessage == previous?.errorMessage) {
+      if (next.errorMessage == null ||
+          next.errorMessage == previous?.errorMessage) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(next.errorMessage!)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
     });
 
     return Scaffold(
-      appBar: AppBar(title: Text('Available Tickets', style: AppTypography.headingMd)),
+      appBar: AppBar(
+        title: Text('Available Tickets', style: AppTypography.headingMd),
+        actions: [
+          IconButton(
+            onPressed: _swapRoute,
+            icon: const Icon(Icons.swap_horiz),
+            tooltip: 'Swap route',
+          ),
+        ],
+      ),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -47,20 +89,43 @@ class TicketResultsPage extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: AppSpacing.roundedLg,
-                    border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
                   ),
-                  child: Text(
-                    '${criteria.departureCity} → ${criteria.destinationCity}\n$dateText',
-                    style: AppTypography.bodyMd,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => _shiftDate(-1),
+                            icon: const Icon(Icons.chevron_left),
+                            tooltip: 'Previous day',
+                          ),
+                          Expanded(
+                            child: Text(
+                              dateText,
+                              textAlign: TextAlign.center,
+                              style: AppTypography.bodyMd,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => _shiftDate(1),
+                            icon: const Icon(Icons.chevron_right),
+                            tooltip: 'Next day',
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                if (state.tickets.isEmpty)
-                  const TicketResultsEmptyState(),
+                if (state.tickets.isEmpty) const TicketResultsEmptyState(),
                 ...state.tickets.map(
                   (ticket) => Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: _TicketCard(ticket: ticket, criteria: criteria),
+                    child: _TicketCard(ticket: ticket, criteria: _criteria),
                   ),
                 ),
               ],
@@ -88,7 +153,9 @@ class _TicketCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: AppSpacing.roundedLg,
-          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
           boxShadow: AppShadows.card,
         ),
         child: Row(
@@ -101,7 +168,10 @@ class _TicketCard extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xs),
                   Text(ticket.timeRange, style: AppTypography.bodySm),
                   const SizedBox(height: AppSpacing.xs),
-                  Text('Layout ${ticket.layoutType}', style: AppTypography.labelMd),
+                  Text(
+                    'Layout ${ticket.layoutType}',
+                    style: AppTypography.labelMd,
+                  ),
                 ],
               ),
             ),
