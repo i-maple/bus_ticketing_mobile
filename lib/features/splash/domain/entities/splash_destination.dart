@@ -1,0 +1,1 @@
+enum SplashDestination { onboarding, home }
