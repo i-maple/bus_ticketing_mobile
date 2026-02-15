@@ -22,6 +22,8 @@ class BookTicketParams {
     required this.selectedSeats,
     required this.totalPrice,
     required this.bookedAt,
+    this.departureCity,
+    this.destinationCity,
   });
 
   final String busId;
@@ -29,6 +31,8 @@ class BookTicketParams {
   final List<String> selectedSeats;
   final int totalPrice;
   final DateTime bookedAt;
+  final String? departureCity;
+  final String? destinationCity;
 
   Map<String, dynamic> toJson() {
     return {
@@ -37,6 +41,8 @@ class BookTicketParams {
       'selectedSeats': selectedSeats,
       'totalPrice': totalPrice,
       'bookedAt': bookedAt.toIso8601String(),
+      'departureCity': departureCity,
+      'destinationCity': destinationCity,
     };
   }
 }

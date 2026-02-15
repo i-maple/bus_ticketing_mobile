@@ -4,11 +4,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../config/app_config.dart';
 import 'mock_graphql_link.dart';
 
+/// Creates the configured GraphQL client instance used by the app.
 class AppGraphQLClient {
   AppGraphQLClient() : _client = _buildClient();
 
   final GraphQLClient _client;
 
+  /// Returns the preconfigured GraphQL client.
   GraphQLClient get client => _client;
 
   static GraphQLClient _buildClient() {

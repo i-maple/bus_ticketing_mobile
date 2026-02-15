@@ -15,12 +15,16 @@ class SeatSelectionInteractiveSection extends ConsumerStatefulWidget {
     super.key,
     required this.busId,
     required this.vehicleName,
+    this.departureCity,
+    this.destinationCity,
     this.layoutType,
     this.occupiedSeatNumbers = const [],
   });
 
   final String busId;
   final String vehicleName;
+  final String? departureCity;
+  final String? destinationCity;
   final String? layoutType;
   final List<String> occupiedSeatNumbers;
 
@@ -31,12 +35,6 @@ class SeatSelectionInteractiveSection extends ConsumerStatefulWidget {
 
 class _SeatSelectionInteractiveSectionState
     extends ConsumerState<SeatSelectionInteractiveSection> {
-  @override
-  void dispose() {
-    ref.invalidate(seatSelectionProvider(widget.busId));
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(seatSelectionProvider(widget.busId));
@@ -61,16 +59,20 @@ class _SeatSelectionInteractiveSectionState
                   .toList(),
               totalPrice: state.totalPrice,
               onContinue: () async {
+                final router = GoRouter.of(context);
+                final messenger = ScaffoldMessenger.of(context);
                 final isBooked = await notifier.bookTicket(
                   vehicleName: widget.vehicleName,
+                  departureCity: widget.departureCity,
+                  destinationCity: widget.destinationCity,
                 );
 
                 if (!mounted) return;
 
                 if (isBooked) {
-                  context.go(AppRoutes.bookingSuccess);
+                  router.go(AppRoutes.bookingSuccess);
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(content: Text('Ticket booking failed')),
                   );
                 }
@@ -82,10 +84,7 @@ class _SeatSelectionInteractiveSectionState
     );
   }
 
-  Widget _buildBody(
-    SeatSelectionState state,
-    SeatSelectionNotifier notifier,
-  ) {
+  Widget _buildBody(SeatSelectionState state, SeatSelectionNotifier notifier) {
     return state.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (message) => Center(
@@ -109,7 +108,7 @@ class _SeatSelectionInteractiveSectionState
         }
 
         final occupied = widget.occupiedSeatNumbers
-          .map((item) => item.toUpperCase())
+            .map((item) => item.toUpperCase())
             .toSet();
         final adjustedSeats = seats.map((seat) {
           if (!occupied.contains(seat.seatNumber.toUpperCase())) return seat;

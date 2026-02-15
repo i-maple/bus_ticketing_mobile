@@ -7,21 +7,20 @@ import '../../../domain/usecases/book_ticket_usecase.dart';
 import '../../models/seat_model.dart';
 
 abstract class SeatSelectionLocalDataSource {
-  Future<List<SeatModel>> getSeatPlan();
+  Future<List<SeatModel>> getSeatPlan(String busId);
 
   Future<void> bookTicket(BookTicketParams params);
 }
 
-class SeatSelectionLocalDataSourceImpl
-    implements SeatSelectionLocalDataSource {
+class SeatSelectionLocalDataSourceImpl implements SeatSelectionLocalDataSource {
   SeatSelectionLocalDataSourceImpl(this._client, this._hiveService);
 
   final GraphQLClient _client;
   final HiveService _hiveService;
 
   static const _query = r'''
-    query GetSeatPlan {
-      seatPlan {
+    query GetSeatPlan($busId: String!) {
+      seatPlan(busId: $busId) {
         seats { seatNumber state price }
       }
     }
@@ -37,9 +36,13 @@ class SeatSelectionLocalDataSourceImpl
   ''';
 
   @override
-  Future<List<SeatModel>> getSeatPlan() async {
+  Future<List<SeatModel>> getSeatPlan(String busId) async {
     final result = await _client.query(
-      QueryOptions(document: gql(_query), operationName: 'GetSeatPlan'),
+      QueryOptions(
+        document: gql(_query),
+        operationName: 'GetSeatPlan',
+        variables: <String, dynamic>{'busId': busId},
+      ),
     );
 
     if (result.hasException) {
@@ -64,9 +67,7 @@ class SeatSelectionLocalDataSourceImpl
       MutationOptions(
         document: gql(_bookTicketMutation),
         operationName: 'BookTicket',
-        variables: {
-          'input': params.toJson(),
-        },
+        variables: {'input': params.toJson()},
       ),
     );
 

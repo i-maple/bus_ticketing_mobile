@@ -10,9 +10,11 @@ import '../models/trip_search_criteria.dart';
 import '../providers/ticket_results_provider.dart';
 import '../widgets/ticket_results_empty_state.dart';
 
+/// Displays available tickets for a selected route and travel date.
 class TicketResultsPage extends ConsumerStatefulWidget {
   const TicketResultsPage({super.key, required this.criteria});
 
+  /// Initial search criteria used to fetch ticket results.
   final TripSearchCriteria criteria;
 
   @override
@@ -21,11 +23,36 @@ class TicketResultsPage extends ConsumerStatefulWidget {
 
 class _TicketResultsPageState extends ConsumerState<TicketResultsPage> {
   late TripSearchCriteria _criteria;
+  ProviderSubscription<TicketResultsState>? _resultsSubscription;
 
   @override
   void initState() {
     super.initState();
     _criteria = widget.criteria;
+    _bindResultsListener();
+  }
+
+  @override
+  void dispose() {
+    _resultsSubscription?.close();
+    super.dispose();
+  }
+
+  void _bindResultsListener() {
+    _resultsSubscription?.close();
+    _resultsSubscription = ref.listenManual<TicketResultsState>(
+      ticketResultsProvider(_criteria),
+      (previous, next) {
+        if (next.errorMessage == null ||
+            next.errorMessage == previous?.errorMessage) {
+          return;
+        }
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
+      },
+    );
   }
 
   void _shiftDate(int days) {
@@ -36,6 +63,7 @@ class _TicketResultsPageState extends ConsumerState<TicketResultsPage> {
         date: _criteria.date.add(Duration(days: days)),
       );
     });
+    _bindResultsListener();
   }
 
   void _swapRoute() {
@@ -46,6 +74,7 @@ class _TicketResultsPageState extends ConsumerState<TicketResultsPage> {
         date: _criteria.date,
       );
     });
+    _bindResultsListener();
   }
 
   @override
@@ -54,19 +83,6 @@ class _TicketResultsPageState extends ConsumerState<TicketResultsPage> {
       context,
     ).formatFullDate(_criteria.date);
     final state = ref.watch(ticketResultsProvider(_criteria));
-
-    ref.listen<TicketResultsState>(ticketResultsProvider(_criteria), (
-      previous,
-      next,
-    ) {
-      if (next.errorMessage == null ||
-          next.errorMessage == previous?.errorMessage) {
-        return;
-      }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
-    });
 
     return Scaffold(
       appBar: AppBar(

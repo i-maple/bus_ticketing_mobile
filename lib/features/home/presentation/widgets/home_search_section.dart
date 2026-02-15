@@ -85,7 +85,9 @@ class _HomeSearchSectionState extends ConsumerState<HomeSearchSection> {
   }
 
   void _findTickets() {
-    if (_departureCity == null || _destinationCity == null || _travelDate == null) {
+    if (_departureCity == null ||
+        _destinationCity == null ||
+        _travelDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Select cities and date first')),
       );
@@ -143,7 +145,9 @@ class _HomeSearchSectionState extends ConsumerState<HomeSearchSection> {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: AppSpacing.roundedMd,
-              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
             ),
             child: Row(
               children: [
@@ -174,19 +178,20 @@ class _HomeSearchSectionState extends ConsumerState<HomeSearchSection> {
             padding: EdgeInsets.symmetric(vertical: AppSpacing.base),
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (_, __) => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
           data: (tickets) {
             if (tickets.isEmpty) {
               return Text('No upcoming tickets', style: AppTypography.bodyMd);
             }
 
-            final nextTicket = tickets.first;
+            final nextTicket = tickets.last;
             return UpcomingTicketCard(
               from: nextTicket.from,
               to: nextTicket.to,
               departureTime: nextTicket.departureDateTime,
               seatNumber: nextTicket.seatNumber,
-              onTap: () => context.push(AppRoutes.ticketDetails, extra: nextTicket),
+              onTap: () =>
+                  context.push(AppRoutes.ticketDetails, extra: nextTicket),
             );
           },
         ),

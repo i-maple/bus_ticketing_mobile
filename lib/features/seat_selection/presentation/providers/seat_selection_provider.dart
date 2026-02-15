@@ -1,7 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/di/injector.dart';
-import '../../../../core/usecase/usecase.dart';
 import '../../domain/entities/seat_entity.dart';
 import '../../domain/usecases/book_ticket_usecase.dart';
 import '../../domain/usecases/get_seat_plan_usecase.dart';
@@ -27,7 +26,7 @@ class SeatSelectionNotifier extends _$SeatSelectionNotifier {
     state = const SeatSelectionState.loading();
 
     final getSeatPlanUseCase = ref.read(getSeatPlanUseCaseProvider);
-    final result = await getSeatPlanUseCase(const NoParams());
+    final result = await getSeatPlanUseCase(GetSeatPlanParams(busId: busId));
     result.fold(
       (failure) {
         state = SeatSelectionState.error(message: failure.message);
@@ -57,6 +56,8 @@ class SeatSelectionNotifier extends _$SeatSelectionNotifier {
 
   Future<bool> bookTicket({
     required String vehicleName,
+    String? departureCity,
+    String? destinationCity,
   }) async {
     final selectedSeats = state.selectedSeats;
     if (selectedSeats.isEmpty) return false;
@@ -69,6 +70,8 @@ class SeatSelectionNotifier extends _$SeatSelectionNotifier {
         selectedSeats: selectedSeats.map((item) => item.seatNumber).toList(),
         totalPrice: state.totalPrice,
         bookedAt: DateTime.now(),
+        departureCity: departureCity,
+        destinationCity: destinationCity,
       ),
     );
 

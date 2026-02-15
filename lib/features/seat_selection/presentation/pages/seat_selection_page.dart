@@ -7,10 +7,7 @@ import '../widgets/seat_legend_row.dart';
 import '../widgets/seat_selection_interactive_section.dart';
 
 class SeatSelectionPage extends StatelessWidget {
-  const SeatSelectionPage({
-    super.key,
-    this.ticket,
-  });
+  const SeatSelectionPage({super.key, this.ticket});
 
   final TicketOption? ticket;
 
@@ -39,6 +36,8 @@ class SeatSelectionPage extends StatelessWidget {
             child: SeatSelectionInteractiveSection(
               busId: ticket?.id ?? 'default-bus',
               vehicleName: ticket?.vehicleName ?? 'Unknown Vehicle',
+              departureCity: ticket?.departureCity,
+              destinationCity: ticket?.destinationCity,
               layoutType: ticket?.layoutType,
               occupiedSeatNumbers: ticket?.occupiedSeatNumbers ?? const [],
             ),

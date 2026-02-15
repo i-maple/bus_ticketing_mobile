@@ -13,9 +13,9 @@ class SeatSelectionRepositoryImpl implements SeatSelectionRepository {
   final SeatSelectionLocalDataSource _localDataSource;
 
   @override
-  Future<Either<Failure, List<SeatEntity>>> getSeatPlan() async {
+  Future<Either<Failure, List<SeatEntity>>> getSeatPlan(String busId) async {
     try {
-      final models = await _localDataSource.getSeatPlan();
+      final models = await _localDataSource.getSeatPlan(busId);
       return Right(models.map((model) => model.toEntity()).toList());
     } on CacheException catch (error) {
       return Left(CacheFailure(error.message, code: error.code));

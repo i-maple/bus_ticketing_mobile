@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../config/theme/theme.dart';
-import '../../domain/entities/home_dashboard_entity.dart';
 import '../../domain/entities/my_ticket_entity.dart';
 import '../providers/home_overview_provider.dart';
-import '../widgets/journey_type_toggle.dart';
 import '../widgets/home_search_section.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -28,11 +26,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       body: IndexedStack(
         index: _currentIndex,
-        children: const [
-          _HomeTab(),
-          _TicketsTab(),
-          _SettingsTab(),
-        ],
+        children: const [_HomeTab(), _TicketsTab(), _SettingsTab()],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -41,9 +35,18 @@ class _HomePageState extends ConsumerState<HomePage> {
         type: BottomNavigationBarType.fixed,
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.confirmation_num_outlined), label: 'Tickets'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Settings'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.confirmation_num_outlined),
+            label: 'Tickets',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_outlined),
+            label: 'Settings',
+          ),
         ],
       ),
     );
@@ -55,19 +58,9 @@ class _HomeTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dashboard = ref.watch(homeDashboardProvider);
-
     return ListView(
       padding: AppSpacing.screenPadding,
       children: [
-        dashboard.when(
-          data: (data) => _NotificationBanner(data: data),
-          loading: () => const LinearProgressIndicator(),
-          error: (_, __) => const SizedBox.shrink(),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        const JourneyTypeToggle(),
-        const SizedBox(height: AppSpacing.base),
         const HomeSearchSection(),
         const SizedBox(height: AppSpacing.xl),
       ],
@@ -75,40 +68,6 @@ class _HomeTab extends ConsumerWidget {
   }
 }
 
-class _NotificationBanner extends StatelessWidget {
-  const _NotificationBanner({required this.data});
-
-  final HomeDashboardEntity data;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: AppSpacing.roundedMd,
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.notifications_active_outlined),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              '${data.promoMessage} • ${data.featuredRoute}',
-              style: AppTypography.bodySm,
-            ),
-          ),
-          const Icon(Icons.chevron_right),
-        ],
-      ),
-    );
-  }
-}
 
 class _TicketsTab extends ConsumerWidget {
   const _TicketsTab();
@@ -120,14 +79,27 @@ class _TicketsTab extends ConsumerWidget {
     return tickets.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
-        child: Text('Failed to load tickets: $error', style: AppTypography.bodyMd),
+        child: Text(
+          'Failed to load tickets: $error',
+          style: AppTypography.bodyMd,
+        ),
       ),
-      data: (items) => ListView.separated(
-        padding: AppSpacing.screenPadding,
-        itemCount: items.length,
-        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-        itemBuilder: (context, index) => _MyTicketCard(ticket: items[index]),
-      ),
+      data: (items) {
+        if (items.isEmpty) {
+          return Center(
+            child: Text('No booked tickets yet', style: AppTypography.bodyMd),
+          );
+        }
+
+        return ListView.separated(
+          reverse: true,
+          shrinkWrap: true,
+          padding: AppSpacing.screenPadding,
+          itemCount: items.length,
+          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+          itemBuilder: (context, index) => _MyTicketCard(ticket: items[index]),
+        );
+      },
     );
   }
 }
@@ -155,7 +127,10 @@ class _MyTicketCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${ticket.from} → ${ticket.to}', style: AppTypography.headingMd),
+                Text(
+                  '${ticket.from} → ${ticket.to}',
+                  style: AppTypography.headingMd,
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(ticket.departureDateTime, style: AppTypography.bodySm),
               ],
@@ -178,7 +153,10 @@ class _SettingsTab extends ConsumerWidget {
     return settings.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
-        child: Text('Failed to load settings: $error', style: AppTypography.bodyMd),
+        child: Text(
+          'Failed to load settings: $error',
+          style: AppTypography.bodyMd,
+        ),
       ),
       data: (data) => ListView(
         padding: AppSpacing.screenPadding,
