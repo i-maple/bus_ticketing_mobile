@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
+import '../features/splash/presentation/pages/splash_page.dart';
 import '../features/home/presentation/models/ticket_option.dart';
 import '../features/home/presentation/models/ticket_result_details_args.dart';
 import '../features/home/presentation/models/trip_search_criteria.dart';
@@ -16,8 +17,12 @@ import 'app_routes.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: AppRoutes.onboarding,
+    initialLocation: AppRoutes.splash,
     routes: [
+      GoRoute(
+        path: AppRoutes.splash,
+        builder: (context, state) => const SplashPage(),
+      ),
       GoRoute(
         path: AppRoutes.onboarding,
         builder: (context, state) => const OnboardingPage(),
@@ -45,9 +50,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             return TicketDetailsPage.resultTicket(resultTicket: extra);
           }
 
-          return UnknownRoutePage(
-            routeName: state.uri.toString(),
-          );
+          return UnknownRoutePage(routeName: state.uri.toString());
         },
       ),
       GoRoute(
@@ -62,8 +65,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const BookingSuccessPage(),
       ),
     ],
-    errorBuilder: (context, state) => UnknownRoutePage(
-      routeName: state.uri.toString(),
-    ),
+    errorBuilder: (context, state) =>
+        UnknownRoutePage(routeName: state.uri.toString()),
   );
 });

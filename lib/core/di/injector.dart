@@ -23,6 +23,7 @@ import '../../features/seat_selection/data/repositories/seat_selection_repositor
 import '../../features/seat_selection/domain/repositories/seat_selection_repository.dart';
 import '../../features/seat_selection/domain/usecases/book_ticket_usecase.dart';
 import '../../features/seat_selection/domain/usecases/get_seat_plan_usecase.dart';
+import '../../features/splash/domain/usecases/resolve_splash_destination_usecase.dart';
 import '../graphql/app_graphql_client.dart';
 import '../storage/hive_service.dart';
 
@@ -87,6 +88,12 @@ Future<void> configureDependencies() async {
   if (!sl.isRegistered<GetOnboardingStatusUseCase>()) {
     sl.registerLazySingleton<GetOnboardingStatusUseCase>(
       () => GetOnboardingStatusUseCase(sl<OnboardingRepository>()),
+    );
+  }
+
+  if (!sl.isRegistered<ResolveSplashDestinationUseCase>()) {
+    sl.registerLazySingleton<ResolveSplashDestinationUseCase>(
+      () => ResolveSplashDestinationUseCase(sl<GetOnboardingStatusUseCase>()),
     );
   }
 
