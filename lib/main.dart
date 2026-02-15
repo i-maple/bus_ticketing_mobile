@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'config/app_router.dart';
 import 'config/theme/app_theme.dart';
+import 'core/di/injector.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,8 @@ Future<void> main() async {
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   GoogleFonts.config.allowRuntimeFetching = true;
+
+  await configureDependencies();
 
   runApp(const ProviderScope(child: TicketBookingApp()));
 }
