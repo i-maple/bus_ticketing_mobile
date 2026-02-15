@@ -1,0 +1,36 @@
+{
+  "homeDashboard": {
+    "promoMessage": "Promo: Get 15% off for early booking",
+    "featuredRoute": "Kathmandu → Pokhara"
+  },
+  "myTickets": [
+    {
+      "id": "t1",
+      "vehicleName": "Everest Deluxe",
+      "vehicleNumber": "BA-2-KHA-2244",
+      "vehicleDescription": "AC deluxe coach with reclining seats and onboard charging",
+      "from": "Kathmandu",
+      "to": "Pokhara",
+      "departureDateTime": "2026-02-18 08:30 AM",
+      "departurePoint": "Gongabu Bus Park",
+      "seatNumber": "2B"
+    },
+    {
+      "id": "t2",
+      "vehicleName": "Koshi Rider",
+      "vehicleNumber": "BA-3-KHA-9901",
+      "vehicleDescription": "Standard express coach with luggage compartment",
+      "from": "Biratnagar",
+      "to": "Janakpur",
+      "departureDateTime": "2026-02-20 10:15 AM",
+      "departurePoint": "Biratnagar Main Counter",
+      "seatNumber": "1A"
+    }
+  ],
+  "settings": {
+    "userName": "Demo User",
+    "email": "demo@ticketflow.app",
+    "notificationsEnabled": true,
+    "darkModeEnabled": false
+  }
+}
