@@ -10,6 +10,12 @@ import '../models/trip_search_criteria.dart';
 import '../providers/ticket_results_provider.dart';
 import '../widgets/ticket_results_empty_state.dart';
 
+bool _isPastTravelDate(DateTime date) {
+  final travelDate = DateUtils.dateOnly(date);
+  final today = DateUtils.dateOnly(DateTime.now());
+  return travelDate.isBefore(today);
+}
+
 /// Displays available tickets for a selected route and travel date.
 class TicketResultsPage extends ConsumerStatefulWidget {
   const TicketResultsPage({super.key, required this.criteria});
@@ -56,11 +62,19 @@ class _TicketResultsPageState extends ConsumerState<TicketResultsPage> {
   }
 
   void _shiftDate(int days) {
+    final shiftedDate = _criteria.date.add(Duration(days: days));
+    if (_isPastTravelDate(shiftedDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot book tickets for past dates')),
+      );
+      return;
+    }
+
     setState(() {
       _criteria = TripSearchCriteria(
         departureCity: _criteria.departureCity,
         destinationCity: _criteria.destinationCity,
-        date: _criteria.date.add(Duration(days: days)),
+        date: shiftedDate,
       );
     });
     _bindResultsListener();
@@ -160,10 +174,19 @@ class _TicketCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: AppSpacing.roundedLg,
-      onTap: () => context.push(
-        AppRoutes.ticketDetails,
-        extra: TicketResultDetailsArgs(ticket: ticket, criteria: criteria),
-      ),
+      onTap: () {
+        if (_isPastTravelDate(criteria.date)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Cannot book tickets for past dates')),
+          );
+          return;
+        }
+
+        context.push(
+          AppRoutes.ticketDetails,
+          extra: TicketResultDetailsArgs(ticket: ticket, criteria: criteria),
+        );
+      },
       child: Container(
         padding: AppSpacing.cardPadding,
         decoration: BoxDecoration(

@@ -52,6 +52,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  mockito: ^5.5.1
   build_runner: ^2.5.2
   freezed: ^3.2.3
 
