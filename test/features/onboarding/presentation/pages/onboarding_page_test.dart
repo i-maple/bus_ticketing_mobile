@@ -7,6 +7,7 @@ import 'package:bus_ticketing_mobile/features/onboarding/domain/usecases/set_onb
 import 'package:bus_ticketing_mobile/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeOnboardingRepository implements OnboardingRepository {
@@ -47,7 +48,9 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(home: OnboardingPage()),
+      const ProviderScope(
+        child: MaterialApp(home: OnboardingPage()),
+      ),
     );
 
     await tester.pump();
