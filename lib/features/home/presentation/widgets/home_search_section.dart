@@ -94,6 +94,15 @@ class _HomeSearchSectionState extends ConsumerState<HomeSearchSection> {
       return;
     }
 
+    final selectedTravelDate = DateUtils.dateOnly(_travelDate!);
+    final today = DateUtils.dateOnly(DateTime.now());
+    if (selectedTravelDate.isBefore(today)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot book tickets for past dates')),
+      );
+      return;
+    }
+
     context.push(
       AppRoutes.ticketResults,
       extra: TripSearchCriteria(
