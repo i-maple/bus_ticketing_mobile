@@ -1,4 +1,7 @@
 abstract final class AppRoutes {
   static const home = '/';
   static const onboarding = '/onboarding';
+  static const ticketResults = '/ticket-results';
+  static const ticketDetails = '/ticket-details';
+  static const seatSelection = '/seat-selection';
 }
