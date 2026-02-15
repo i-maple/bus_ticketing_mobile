@@ -124,7 +124,10 @@ class _HomeSearchSectionState extends ConsumerState<HomeSearchSection> {
         Align(
           child: IconButton.filledTonal(
             onPressed: _swapCities,
-            icon: Icon(Icons.swap_vert, color: Theme.of(context).colorScheme.primary),
+            icon: Icon(
+              Icons.swap_vert,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             color: Theme.of(context).colorScheme.primaryContainer,
           ),
         ),
@@ -137,28 +140,12 @@ class _HomeSearchSectionState extends ConsumerState<HomeSearchSection> {
           onTap: () => _pickCity(isDeparture: false),
         ),
         const SizedBox(height: AppSpacing.sm),
-        InkWell(
-          borderRadius: AppSpacing.roundedMd,
+        SearchInputField(
           onTap: _pickDate,
-          child: Container(
-            width: double.infinity,
-            padding: AppSpacing.cardPadding,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: AppSpacing.roundedMd,
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outlineVariant,
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_month_outlined),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(child: Text(dateLabel, style: AppTypography.bodyMd)),
-                const Icon(Icons.chevron_right),
-              ],
-            ),
-          ),
+          value: _travelDate == null ? null : dateLabel,
+          label: 'Travel Date',
+          hintText: 'Select travel date',
+          icon: Icons.calendar_month_outlined,
         ),
         const SizedBox(height: AppSpacing.base),
         FilledButton(
