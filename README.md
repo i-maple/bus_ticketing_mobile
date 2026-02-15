@@ -1,9 +1,13 @@
 # Ticket Booking Mobile App
 
-## Theming
+## Documentation
 
-- Palette source of truth: `lib/config/theme/app_colors.dart`
-- App theme setup: `lib/config/theme/app_theme.dart`
-- App bootstrap uses centralized theme in `lib/main.dart`
+- Technical assignment write-up: [docs/technical-assignment.md](docs/technical-assignment.md)
+- Latest tagged source snapshot: [v1.0.9](https://github.com/i-maple/bus_ticketing_mobile/tree/v1.0.9)
 
-`AppColors` is used for all UI colors to avoid inline hex values in widgets. Colors aren't hardcoded anywhere in the widgets, to avoid scattered colors everywhere in the project.
+## Quick Notes
+
+- State management: Riverpod
+- Data layer: GraphQL client with local/mock GraphQL link
+- DI: GetIt
+- Code generation: freezed/json_serializable/riverpod_generator/mockito
