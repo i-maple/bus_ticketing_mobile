@@ -3,138 +3,43 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/app_routes.dart';
 import '../../../../config/theme/theme.dart';
-import '../widgets/onboarding_action_bar.dart';
+import '../models/onboarding_slide.dart';
 import '../widgets/onboarding_page_indicator.dart';
 import '../widgets/onboarding_slide_card.dart';
 
-class OnboardingPage extends StatefulWidget {
+class OnboardingPage extends StatelessWidget {
   const OnboardingPage({super.key});
 
-  @override
-  State<OnboardingPage> createState() => _OnboardingPageState();
-}
-
-class _OnboardingPageState extends State<OnboardingPage> {
-  late final PageController _pageController;
-  int _currentIndex = 0;
-
-  final List<_OnboardingContent> _slides = const [
-    _OnboardingContent(
+  static const List<OnboardingSlide> _slides = [
+    OnboardingSlide(
       animationAssetPath: 'assets/lottie/maps.json',
-      playOnceThenLoop: true,
-      loopDuration: Duration(milliseconds: 2400),
       title: 'Book trips in seconds',
       description: 'Search routes and reserve your seat with a few taps.',
     ),
-    _OnboardingContent(
+    OnboardingSlide(
       animationAssetPath: 'assets/lottie/seat_plan.json',
-      playOnceThenLoop: false,
-      loopDuration: Duration(milliseconds: 3000),
       title: 'Choose your seat',
       description: 'View live seat plans and pick the best seat for your trip.',
     ),
-    _OnboardingContent(
+    OnboardingSlide(
       animationAssetPath: 'assets/lottie/ticket.json',
-      playOnceThenLoop: true,
-      loopDuration: Duration(milliseconds: 2200),
       title: 'Travel with e-ticket',
       description: 'Store your ticket in-app and board quickly with QR check-in.',
     ),
   ];
 
-  bool get _isLastPage => _currentIndex == _slides.length - 1;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  void _goNext() {
-    if (_isLastPage) {
-      _completeOnboarding();
-      return;
-    }
-
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _completeOnboarding() {
-    context.go(AppRoutes.home);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: AppSpacing.screenPadding,
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: _completeOnboarding,
-                  child: const Text('Skip'),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: _slides.length,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _currentIndex = index;
-                    });
-                  },
-                  itemBuilder: (context, index) {
-                    final slide = _slides[index];
-                    return OnboardingSlideCard(
-                      animationAssetPath: slide.animationAssetPath,
-                      playOnceThenLoop: slide.playOnceThenLoop,
-                      loopDuration: slide.loopDuration,
-                      title: slide.title,
-                      description: slide.description,
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              OnboardingPageIndicator(
-                currentIndex: _currentIndex,
-                itemCount: _slides.length,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              OnboardingActionBar(
-                isLastPage: _isLastPage,
-                onNextPressed: _goNext,
-                onBackPressed: _currentIndex > 0
-                    ? () {
-                        _pageController.previousPage(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeInOut,
-                        );
-                      }
-                    : null,
-              ),
-              const SizedBox(height: AppSpacing.base),
-              Text(
-                'Step ${_currentIndex + 1} of ${_slides.length}',
-                style: textTheme.bodySmall,
-              ),
-            ],
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppColors.heroGradient),
+        child: SafeArea(
+          child: Padding(
+            padding: AppSpacing.screenPadding,
+            child: _OnboardingPager(
+              slides: _slides,
+              onFinished: () => context.go(AppRoutes.home),
+            ),
           ),
         ),
       ),
@@ -142,18 +47,121 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 }
 
-class _OnboardingContent {
-  const _OnboardingContent({
-    required this.animationAssetPath,
-    required this.playOnceThenLoop,
-    required this.loopDuration,
-    required this.title,
-    required this.description,
-  });
+class _OnboardingPager extends StatefulWidget {
+  const _OnboardingPager({required this.slides, required this.onFinished});
 
-  final String animationAssetPath;
-  final bool playOnceThenLoop;
-  final Duration loopDuration;
-  final String title;
-  final String description;
+  final List<OnboardingSlide> slides;
+  final VoidCallback onFinished;
+
+  @override
+  State<_OnboardingPager> createState() => _OnboardingPagerState();
+}
+
+class _OnboardingPagerState extends State<_OnboardingPager> {
+  late final PageController _pageController = PageController();
+  late final ValueNotifier<int> _currentIndex = ValueNotifier<int>(0);
+  bool _isTransitioning = false;
+
+  bool get _isLastPage =>
+      widget.slides.isEmpty || _currentIndex.value == widget.slides.length - 1;
+
+  @override
+  void dispose() {
+    _currentIndex.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _goNext() async {
+    if (_isTransitioning) return;
+
+    if (_isLastPage) {
+      widget.onFinished();
+      return;
+    }
+
+    if (!_pageController.hasClients) return;
+
+    _isTransitioning = true;
+    await _pageController.nextPage(
+      duration: AppDurations.fast,
+      curve: AppDurations.standardCurve,
+    );
+    _isTransitioning = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: widget.onFinished,
+            child: const Text('Skip'),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Expanded(
+          child: widget.slides.isEmpty
+              ? Center(
+                  child: Text(
+                    'No onboarding slides available',
+                    style: textTheme.bodyMedium,
+                  ),
+                )
+              : PageView.builder(
+                  controller: _pageController,
+                  itemCount: widget.slides.length,
+                  onPageChanged: (index) => _currentIndex.value = index,
+                  itemBuilder: (context, index) {
+                    final slide = widget.slides[index];
+                    return OnboardingSlideCard(
+                      animationAssetPath: slide.animationAssetPath,
+                      playOnceThenLoop: true,
+                      loopDuration: AppDurations.slow,
+                      title: slide.title,
+                      description: slide.description,
+                    );
+                  },
+                ),
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        ValueListenableBuilder<int>(
+          valueListenable: _currentIndex,
+          builder: (context, value, _) => OnboardingPageIndicator(
+            currentIndex: value,
+            itemCount: widget.slides.length,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        SizedBox(
+          width: double.infinity,
+          child: ValueListenableBuilder<int>(
+            valueListenable: _currentIndex,
+            builder: (context, value, _) => FilledButton(
+              onPressed: _goNext,
+              child: Text(
+                value == widget.slides.length - 1 || widget.slides.isEmpty
+                    ? 'Get Started'
+                    : 'Next',
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.base),
+        ValueListenableBuilder<int>(
+          valueListenable: _currentIndex,
+          builder: (context, value, _) => Text(
+            widget.slides.isEmpty
+                ? 'Step 0 of 0'
+                : 'Step ${value + 1} of ${widget.slides.length}',
+            style: textTheme.bodySmall,
+          ),
+        ),
+      ],
+    );
+  }
 }

@@ -124,6 +124,12 @@ class _OnboardingSlideAnimationState extends State<_OnboardingSlideAnimation>
           controller: _animationController,
           repeat: false,
           fit: BoxFit.contain,
+          frameRate: FrameRate.max,
+          addRepaintBoundary: true,
+          errorBuilder: (_, __, ___) => const Icon(
+            Icons.animation_outlined,
+            size: AppSpacing.xl4,
+          ),
           onLoaded: (composition) {
             if (_hasStartedPlayback) return;
             _hasStartedPlayback = true;
