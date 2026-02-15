@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../config/theme/theme.dart';
 import '../../../home/presentation/models/ticket_option.dart';
-import '../widgets/seat_class_filter.dart';
 import '../widgets/seat_legend_row.dart';
 import '../widgets/seat_selection_interactive_section.dart';
 
@@ -26,10 +25,6 @@ class SeatSelectionPage extends StatelessWidget {
           Padding(
             padding: AppSpacing.screenPaddingH.copyWith(top: AppSpacing.md),
             child: const SeatLegendRow(),
-          ),
-          Padding(
-            padding: AppSpacing.screenPaddingH.copyWith(top: AppSpacing.md),
-            child: const SeatClassFilter(),
           ),
           const SizedBox(height: AppSpacing.sm),
           Expanded(

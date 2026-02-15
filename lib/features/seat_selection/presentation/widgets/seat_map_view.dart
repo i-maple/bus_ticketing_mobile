@@ -245,9 +245,9 @@ class _SeatLayoutConfig {
 
   static List<int>? _parse(String? rawType) {
     if (rawType == null || rawType.trim().isEmpty) return null;
-    final parts = rawType.split('+');
-    final values = parts.map((part) => int.tryParse(part.trim())).toList();
-    if (values.any((value) => value == null || value <= 0)) return null;
-    return values.cast<int>();
+    final normalized = rawType.trim();
+    if (normalized == '2+2') return const <int>[2, 2];
+    if (normalized == '1+2') return const <int>[1, 2];
+    return null;
   }
 }
