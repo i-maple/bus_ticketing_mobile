@@ -1,5 +1,10 @@
+import 'package:json_annotation/json_annotation.dart';
+
 import '../../domain/entities/settings_entity.dart';
 
+part 'settings_model.g.dart';
+
+@JsonSerializable()
 class SettingsModel {
   const SettingsModel({
     required this.userName,
@@ -13,14 +18,10 @@ class SettingsModel {
   final bool notificationsEnabled;
   final bool darkModeEnabled;
 
-  factory SettingsModel.fromJson(Map<String, dynamic> json) {
-    return SettingsModel(
-      userName: json['userName'] as String? ?? '',
-      email: json['email'] as String? ?? '',
-      notificationsEnabled: json['notificationsEnabled'] as bool? ?? false,
-      darkModeEnabled: json['darkModeEnabled'] as bool? ?? false,
-    );
-  }
+  factory SettingsModel.fromJson(Map<String, dynamic> json) =>
+      _$SettingsModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SettingsModelToJson(this);
 
   SettingsEntity toEntity() {
     return SettingsEntity(

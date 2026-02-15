@@ -1,5 +1,7 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../config/app_config.dart';
 import 'mock_graphql_link.dart';
 
 class AppGraphQLClient {
@@ -11,7 +13,7 @@ class AppGraphQLClient {
 
   static GraphQLClient _buildClient() {
     return GraphQLClient(
-      link: MockGraphqlLink(),
+      link: MockGraphqlLink(appBox: Hive.box<dynamic>(AppConfig.hiveAppBox)),
       cache: GraphQLCache(store: InMemoryStore()),
       defaultPolicies: DefaultPolicies(
         query: Policies(fetch: FetchPolicy.noCache),

@@ -1,3 +1,4 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/di/injector.dart';
@@ -7,30 +8,15 @@ import '../models/ticket_option.dart';
 import '../models/trip_search_criteria.dart';
 
 part 'ticket_results_provider.g.dart';
+part 'ticket_results_provider.freezed.dart';
 
-class TicketResultsState {
-  const TicketResultsState({
-    this.isLoading = false,
-    this.errorMessage,
-    this.tickets = const [],
-  });
-
-  final bool isLoading;
-  final String? errorMessage;
-  final List<TicketOption> tickets;
-
-  TicketResultsState copyWith({
-    bool? isLoading,
+@freezed
+abstract class TicketResultsState with _$TicketResultsState {
+  const factory TicketResultsState({
+    @Default(false) bool isLoading,
     String? errorMessage,
-    List<TicketOption>? tickets,
-    bool clearError = false,
-  }) {
-    return TicketResultsState(
-      isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      tickets: tickets ?? this.tickets,
-    );
-  }
+    @Default(<TicketOption>[]) List<TicketOption> tickets,
+  }) = _TicketResultsState;
 }
 
 @riverpod
@@ -47,7 +33,7 @@ class TicketResultsNotifier extends _$TicketResultsNotifier {
   }
 
   Future<void> loadTickets() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(isLoading: true, errorMessage: null);
 
     final result = await _searchTicketsUseCase(
       SearchTicketsParams(
@@ -68,7 +54,7 @@ class TicketResultsNotifier extends _$TicketResultsNotifier {
       (items) => state.copyWith(
         isLoading: false,
         tickets: items.map(TicketOption.fromEntity).toList(),
-        clearError: true,
+        errorMessage: null,
       ),
     );
   }

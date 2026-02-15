@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/app_routes.dart';
 import '../../../../config/theme/theme.dart';
 import '../models/ticket_option.dart';
+import '../models/ticket_result_details_args.dart';
 import '../models/trip_search_criteria.dart';
 import '../providers/ticket_results_provider.dart';
 import '../widgets/ticket_results_empty_state.dart';
@@ -59,7 +60,7 @@ class TicketResultsPage extends ConsumerWidget {
                 ...state.tickets.map(
                   (ticket) => Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: _TicketCard(ticket: ticket),
+                    child: _TicketCard(ticket: ticket, criteria: criteria),
                   ),
                 ),
               ],
@@ -69,15 +70,19 @@ class TicketResultsPage extends ConsumerWidget {
 }
 
 class _TicketCard extends StatelessWidget {
-  const _TicketCard({required this.ticket});
+  const _TicketCard({required this.ticket, required this.criteria});
 
   final TicketOption ticket;
+  final TripSearchCriteria criteria;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: AppSpacing.roundedLg,
-      onTap: () => context.push(AppRoutes.seatSelection, extra: ticket),
+      onTap: () => context.push(
+        AppRoutes.ticketDetails,
+        extra: TicketResultDetailsArgs(ticket: ticket, criteria: criteria),
+      ),
       child: Container(
         padding: AppSpacing.cardPadding,
         decoration: BoxDecoration(

@@ -1,18 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../config/app_routes.dart';
 import '../../../../config/theme/theme.dart';
 import '../../domain/entities/my_ticket_entity.dart';
+import '../models/ticket_result_details_args.dart';
 
 class TicketDetailsPage extends StatelessWidget {
-  const TicketDetailsPage({
+  const TicketDetailsPage.myTicket({
     super.key,
     required this.ticket,
-  });
+  }) : resultTicket = null;
 
-  final MyTicketEntity ticket;
+  const TicketDetailsPage.resultTicket({
+    super.key,
+    required this.resultTicket,
+  }) : ticket = null;
+
+  final MyTicketEntity? ticket;
+  final TicketResultDetailsArgs? resultTicket;
 
   @override
   Widget build(BuildContext context) {
+    final myTicket = ticket;
+    final result = resultTicket;
+
     return Scaffold(
       appBar: AppBar(title: Text('Ticket Details', style: AppTypography.headingMd)),
       body: ListView(
@@ -29,19 +41,49 @@ class TicketDetailsPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(ticket.vehicleName, style: AppTypography.headingMd),
+                Text(
+                  myTicket?.vehicleName ?? result?.ticket.vehicleName ?? '-',
+                  style: AppTypography.headingMd,
+                ),
                 const SizedBox(height: AppSpacing.xs),
-                Text(ticket.vehicleNumber, style: AppTypography.labelMd),
+                Text(
+                  myTicket?.vehicleNumber ?? 'Vehicle details available after booking',
+                  style: AppTypography.labelMd,
+                ),
                 const SizedBox(height: AppSpacing.sm),
-                Text(ticket.vehicleDescription, style: AppTypography.bodySm),
+                Text(
+                  myTicket?.vehicleDescription ??
+                      'Layout ${result?.ticket.layoutType ?? '-'} • Rs ${result?.ticket.price ?? 0}',
+                  style: AppTypography.bodySm,
+                ),
                 const SizedBox(height: AppSpacing.base),
-                _DetailRow(label: 'Route', value: '${ticket.from} → ${ticket.to}'),
-                _DetailRow(label: 'Departure', value: ticket.departureDateTime),
-                _DetailRow(label: 'Depart From', value: ticket.departurePoint),
-                _DetailRow(label: 'Seat', value: ticket.seatNumber),
+                _DetailRow(
+                  label: 'Route',
+                  value:
+                      '${myTicket?.from ?? result?.criteria.departureCity ?? '-'} → ${myTicket?.to ?? result?.criteria.destinationCity ?? '-'}',
+                ),
+                _DetailRow(
+                  label: 'Departure',
+                  value: myTicket?.departureDateTime ?? result?.ticket.timeRange ?? '-',
+                ),
+                _DetailRow(
+                  label: 'Depart From',
+                  value: myTicket?.departurePoint ?? result?.criteria.departureCity ?? '-',
+                ),
+                _DetailRow(
+                  label: 'Seat',
+                  value: myTicket?.seatNumber ?? 'Not selected',
+                ),
               ],
             ),
           ),
+          if (result != null) ...[
+            const SizedBox(height: AppSpacing.base),
+            FilledButton(
+              onPressed: () => context.push(AppRoutes.seatSelection, extra: result.ticket),
+              child: const Text('Select Seats'),
+            ),
+          ],
         ],
       ),
     );

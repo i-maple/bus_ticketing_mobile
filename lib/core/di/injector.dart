@@ -19,6 +19,7 @@ import '../../features/home/domain/usecases/search_tickets_usecase.dart';
 import '../../features/seat_selection/data/data_sources/local/seat_selection_local_data_source.dart';
 import '../../features/seat_selection/data/repositories/seat_selection_repository_impl.dart';
 import '../../features/seat_selection/domain/repositories/seat_selection_repository.dart';
+import '../../features/seat_selection/domain/usecases/book_ticket_usecase.dart';
 import '../../features/seat_selection/domain/usecases/get_seat_plan_usecase.dart';
 import '../graphql/app_graphql_client.dart';
 import '../storage/hive_service.dart';
@@ -44,7 +45,10 @@ Future<void> configureDependencies() async {
 
   if (!sl.isRegistered<SeatSelectionLocalDataSource>()) {
     sl.registerLazySingleton<SeatSelectionLocalDataSource>(
-      () => SeatSelectionLocalDataSourceImpl(sl<GraphQLClient>()),
+      () => SeatSelectionLocalDataSourceImpl(
+        sl<GraphQLClient>(),
+        sl<HiveService>(),
+      ),
     );
   }
 
@@ -57,6 +61,12 @@ Future<void> configureDependencies() async {
   if (!sl.isRegistered<GetSeatPlanUseCase>()) {
     sl.registerLazySingleton<GetSeatPlanUseCase>(
       () => GetSeatPlanUseCase(sl<SeatSelectionRepository>()),
+    );
+  }
+
+  if (!sl.isRegistered<BookTicketUseCase>()) {
+    sl.registerLazySingleton<BookTicketUseCase>(
+      () => BookTicketUseCase(sl<SeatSelectionRepository>()),
     );
   }
 

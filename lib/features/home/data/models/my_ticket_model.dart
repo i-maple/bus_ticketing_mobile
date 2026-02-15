@@ -1,5 +1,10 @@
+import 'package:json_annotation/json_annotation.dart';
+
 import '../../domain/entities/my_ticket_entity.dart';
 
+part 'my_ticket_model.g.dart';
+
+@JsonSerializable()
 class MyTicketModel {
   const MyTicketModel({
     required this.id,
@@ -23,19 +28,10 @@ class MyTicketModel {
   final String departurePoint;
   final String seatNumber;
 
-  factory MyTicketModel.fromJson(Map<String, dynamic> json) {
-    return MyTicketModel(
-      id: json['id'] as String? ?? '',
-      vehicleName: json['vehicleName'] as String? ?? '',
-      vehicleNumber: json['vehicleNumber'] as String? ?? '',
-      vehicleDescription: json['vehicleDescription'] as String? ?? '',
-      from: json['from'] as String? ?? '',
-      to: json['to'] as String? ?? '',
-      departureDateTime: json['departureDateTime'] as String? ?? '',
-      departurePoint: json['departurePoint'] as String? ?? '',
-      seatNumber: json['seatNumber'] as String? ?? '',
-    );
-  }
+  factory MyTicketModel.fromJson(Map<String, dynamic> json) =>
+      _$MyTicketModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MyTicketModelToJson(this);
 
   MyTicketEntity toEntity() {
     return MyTicketEntity(
