@@ -1,4 +1,3 @@
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../config/app_config.dart';
@@ -7,8 +6,15 @@ import '../error/exceptions.dart';
 class HiveService {
   Future<void> init() async {
     try {
-      await initHiveForFlutter();
-      await Hive.openBox<dynamic>(AppConfig.hiveAppBox);
+      await Hive.initFlutter();
+
+      if (!Hive.isBoxOpen(AppConfig.hiveAppBox)) {
+        await Hive.openBox<dynamic>(AppConfig.hiveAppBox);
+      }
+
+      if (!Hive.isBoxOpen('graphqlClientStore')) {
+        await Hive.openBox<dynamic>('graphqlClientStore');
+      }
     } catch (error) {
       throw CacheException('Failed to initialize local storage: $error');
     }
