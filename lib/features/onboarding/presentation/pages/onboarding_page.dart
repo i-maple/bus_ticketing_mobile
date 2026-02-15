@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/app_routes.dart';
 import '../../../../config/theme/theme.dart';
 import '../models/onboarding_slide.dart';
+import '../providers/onboarding_flow_provider.dart';
 import '../widgets/onboarding_page_indicator.dart';
 import '../widgets/onboarding_slide_card.dart';
 
-class OnboardingPage extends StatelessWidget {
+class OnboardingPage extends ConsumerWidget {
   const OnboardingPage({super.key});
 
   static const List<OnboardingSlide> _slides = [
@@ -29,7 +31,16 @@ class OnboardingPage extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<OnboardingFlowState>(onboardingFlowProvider, (
+      previous,
+      next,
+    ) {
+      if (previous?.isCompleted == true) return;
+      if (!next.isCompleted) return;
+      context.go(AppRoutes.home);
+    });
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.heroGradient),
@@ -38,7 +49,6 @@ class OnboardingPage extends StatelessWidget {
             padding: AppSpacing.screenPadding,
             child: _OnboardingPager(
               slides: _slides,
-              onFinished: () => context.go(AppRoutes.home),
             ),
           ),
         ),
@@ -47,17 +57,16 @@ class OnboardingPage extends StatelessWidget {
   }
 }
 
-class _OnboardingPager extends StatefulWidget {
-  const _OnboardingPager({required this.slides, required this.onFinished});
+class _OnboardingPager extends ConsumerStatefulWidget {
+  const _OnboardingPager({required this.slides});
 
   final List<OnboardingSlide> slides;
-  final VoidCallback onFinished;
 
   @override
-  State<_OnboardingPager> createState() => _OnboardingPagerState();
+  ConsumerState<_OnboardingPager> createState() => _OnboardingPagerState();
 }
 
-class _OnboardingPagerState extends State<_OnboardingPager> {
+class _OnboardingPagerState extends ConsumerState<_OnboardingPager> {
   late final PageController _pageController = PageController();
   late final ValueNotifier<int> _currentIndex = ValueNotifier<int>(0);
   bool _isTransitioning = false;
@@ -72,11 +81,16 @@ class _OnboardingPagerState extends State<_OnboardingPager> {
     super.dispose();
   }
 
+  Future<void> _completeOnboarding() async {
+    await ref.read(onboardingFlowProvider.notifier).complete();
+  }
+
   Future<void> _goNext() async {
-    if (_isTransitioning) return;
+    final onboardingState = ref.read(onboardingFlowProvider);
+    if (_isTransitioning || onboardingState.isCompleted) return;
 
     if (_isLastPage) {
-      widget.onFinished();
+      await _completeOnboarding();
       return;
     }
 
@@ -87,19 +101,26 @@ class _OnboardingPagerState extends State<_OnboardingPager> {
       duration: AppDurations.fast,
       curve: AppDurations.standardCurve,
     );
+
+    if (!mounted) return;
     _isTransitioning = false;
   }
 
   @override
   Widget build(BuildContext context) {
+    final onboardingState = ref.watch(onboardingFlowProvider);
     final textTheme = Theme.of(context).textTheme;
+
+    if (onboardingState.isChecking) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return Column(
       children: [
         Align(
           alignment: Alignment.centerRight,
           child: TextButton(
-            onPressed: widget.onFinished,
+            onPressed: _completeOnboarding,
             child: const Text('Skip'),
           ),
         ),
@@ -121,7 +142,7 @@ class _OnboardingPagerState extends State<_OnboardingPager> {
                     return OnboardingSlideCard(
                       animationAssetPath: slide.animationAssetPath,
                       playOnceThenLoop: true,
-                      loopDuration: AppDurations.slow,
+                      loopDuration: AppDurations.xSlow,
                       title: slide.title,
                       description: slide.description,
                     );

@@ -126,7 +126,7 @@ class _OnboardingSlideAnimationState extends State<_OnboardingSlideAnimation>
           fit: BoxFit.contain,
           frameRate: FrameRate.max,
           addRepaintBoundary: true,
-          errorBuilder: (_, __, ___) => const Icon(
+          errorBuilder: (_, _, _) => const Icon(
             Icons.animation_outlined,
             size: AppSpacing.xl4,
           ),
@@ -139,10 +139,16 @@ class _OnboardingSlideAnimationState extends State<_OnboardingSlideAnimation>
                 ..duration = composition.duration
                 ..forward().whenComplete(() {
                   if (!mounted) return;
-                  _animationController.repeat(period: widget.loopDuration);
+                  final repeatPeriod = widget.loopDuration >= composition.duration
+                      ? widget.loopDuration
+                      : composition.duration;
+                  _animationController.repeat(period: repeatPeriod);
                 });
             } else {
-              _animationController.repeat(period: widget.loopDuration);
+              final repeatPeriod = widget.loopDuration >= composition.duration
+                  ? widget.loopDuration
+                  : composition.duration;
+              _animationController.repeat(period: repeatPeriod);
             }
           },
         ),
