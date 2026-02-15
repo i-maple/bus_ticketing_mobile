@@ -12,7 +12,7 @@ class AppGraphQLClient {
   static GraphQLClient _buildClient() {
     return GraphQLClient(
       link: MockGraphqlLink(),
-      cache: GraphQLCache(store: HiveStore()),
+      cache: GraphQLCache(store: InMemoryStore()),
       defaultPolicies: DefaultPolicies(
         query: Policies(fetch: FetchPolicy.noCache),
         watchQuery: Policies(fetch: FetchPolicy.noCache),
