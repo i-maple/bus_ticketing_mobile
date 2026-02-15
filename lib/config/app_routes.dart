@@ -4,4 +4,5 @@ abstract final class AppRoutes {
   static const ticketResults = '/ticket-results';
   static const ticketDetails = '/ticket-details';
   static const seatSelection = '/seat-selection';
+  static const bookingSuccess = '/booking-success';
 }
