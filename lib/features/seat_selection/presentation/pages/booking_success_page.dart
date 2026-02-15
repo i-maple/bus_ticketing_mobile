@@ -21,7 +21,7 @@ class BookingSuccessPage extends StatelessWidget {
                 SizedBox(
                   width: 180,
                   height: 180,
-                  child: Lottie.asset('assets/lottie/ticket.json'),
+                  child: Lottie.asset('assets/lottie/success.json'),
                 ),
                 const SizedBox(height: AppSpacing.base),
                 Text('Booking Confirmed', style: AppTypography.headingLg),
