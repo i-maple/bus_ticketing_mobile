@@ -23,7 +23,7 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    expect(find.text('Home Page'), findsOneWidget);
+    expect(find.text('Search'), findsOneWidget);
 
     appRouter.go('/unknown-route');
     await tester.pumpAndSettle();
