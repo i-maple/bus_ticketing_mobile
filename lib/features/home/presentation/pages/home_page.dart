@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/app_routes.dart';
 import '../../../../config/theme/theme.dart';
-import '../../domain/entities/my_ticket_entity.dart';
 import '../providers/home_overview_provider.dart';
 import '../providers/theme_mode_provider.dart';
 import '../widgets/home_search_section.dart';
+import '../widgets/upcoming_ticket_card.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -124,73 +124,19 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
           padding: AppSpacing.screenPadding,
           itemCount: items.length,
           separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-          itemBuilder: (context, index) => _MyTicketCard(ticket: items[index]),
+          itemBuilder: (context, index) {
+            final ticket = items[index];
+            return UpcomingTicketCard(
+              from: ticket.from,
+              to: ticket.to,
+              departureTime: ticket.departureDateTime,
+              seatNumber: ticket.seatNumber,
+              onTap: () => context.push(AppRoutes.ticketDetails, extra: ticket),
+            );
+          },
         );
       },
     );
-  }
-}
-
-class _MyTicketCard extends StatelessWidget {
-  const _MyTicketCard({required this.ticket});
-
-  final MyTicketEntity ticket;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final departureDateTime = _formatDateTime(
-      context,
-      ticket.departureDateTime,
-    );
-
-    return InkWell(
-      borderRadius: AppSpacing.roundedLg,
-      onTap: () => context.push(AppRoutes.ticketDetails, extra: ticket),
-      child: Container(
-        padding: AppSpacing.cardPadding,
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: AppSpacing.roundedLg,
-          border: Border.all(color: colorScheme.outlineVariant),
-          boxShadow: AppShadows.card,
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${ticket.from} → ${ticket.to}',
-                    style: AppTypography.headingMd,
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(departureDateTime, style: AppTypography.bodySm),
-                ],
-              ),
-            ),
-            Text('Seat ${ticket.seatNumber}', style: AppTypography.labelMd),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDateTime(BuildContext context, String raw) {
-    final parsed = DateTime.tryParse(raw);
-    if (parsed == null) {
-      return raw;
-    }
-
-    final local = parsed.toLocal();
-    final dateText = MaterialLocalizations.of(context).formatMediumDate(local);
-    final timeText = MaterialLocalizations.of(context).formatTimeOfDay(
-      TimeOfDay.fromDateTime(local),
-      alwaysUse24HourFormat: false,
-    );
-
-    return '$dateText • $timeText';
   }
 }
 

@@ -139,7 +139,7 @@ class _HomeSearchSectionState extends ConsumerState<HomeSearchSection> {
           value: _destinationCity,
           onTap: () => _pickCity(isDeparture: false),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.md),
         SearchInputField(
           onTap: _pickDate,
           value: _travelDate == null ? null : dateLabel,
