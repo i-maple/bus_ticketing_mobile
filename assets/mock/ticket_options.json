@@ -1,0 +1,64 @@
+{
+  "ticketOptions": [
+    {
+      "id": "ktm-birat-1",
+      "departureCity": "Kathmandu",
+      "destinationCity": "Biratnagar",
+      "vehicleName": "Everest Deluxe",
+      "timeRange": "06:00 - 09:30",
+      "price": 1100,
+      "layoutType": "2+2",
+      "occupiedSeatNumbers": ["1A", "1B", "2C", "3D", "4A"]
+    },
+    {
+      "id": "ktm-birat-2",
+      "departureCity": "Kathmandu",
+      "destinationCity": "Biratnagar",
+      "vehicleName": "Himal Express",
+      "timeRange": "09:30 - 13:00",
+      "price": 980,
+      "layoutType": "1+2",
+      "occupiedSeatNumbers": ["1A", "2B", "2C", "4C"]
+    },
+    {
+      "id": "ktm-pokhara-1",
+      "departureCity": "Kathmandu",
+      "destinationCity": "Pokhara",
+      "vehicleName": "Annapurna Coach",
+      "timeRange": "13:30 - 17:30",
+      "price": 1050,
+      "layoutType": "2+2",
+      "occupiedSeatNumbers": ["1C", "2A", "2D", "3B", "4D"]
+    },
+    {
+      "id": "pokhara-ktm-1",
+      "departureCity": "Pokhara",
+      "destinationCity": "Kathmandu",
+      "vehicleName": "Mero Travels",
+      "timeRange": "18:30 - 22:00",
+      "price": 1200,
+      "layoutType": "1+2",
+      "occupiedSeatNumbers": ["1A", "1B", "2C", "3A", "5C"]
+    },
+    {
+      "id": "birat-janak-1",
+      "departureCity": "Biratnagar",
+      "destinationCity": "Janakpur",
+      "vehicleName": "Koshi Rider",
+      "timeRange": "07:00 - 10:15",
+      "price": 900,
+      "layoutType": "2+2",
+      "occupiedSeatNumbers": ["1D", "2A", "2B", "3C"]
+    },
+    {
+      "id": "butwal-nepalgunj-1",
+      "departureCity": "Butwal",
+      "destinationCity": "Nepalgunj",
+      "vehicleName": "Westline Coach",
+      "timeRange": "15:00 - 19:30",
+      "price": 990,
+      "layoutType": "1+2",
+      "occupiedSeatNumbers": ["1A", "2B", "3C"]
+    }
+  ]
+}

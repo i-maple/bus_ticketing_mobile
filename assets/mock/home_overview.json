@@ -1,0 +1,28 @@
+{
+  "homeDashboard": {
+    "promoMessage": "Promo: Get 15% off for early booking",
+    "featuredRoute": "Kathmandu → Pokhara"
+  },
+  "myTickets": [
+    {
+      "id": "t1",
+      "from": "Kathmandu",
+      "to": "Pokhara",
+      "departureTime": "08:30 AM",
+      "seatNumber": "2B"
+    },
+    {
+      "id": "t2",
+      "from": "Biratnagar",
+      "to": "Janakpur",
+      "departureTime": "10:15 AM",
+      "seatNumber": "1A"
+    }
+  ],
+  "settings": {
+    "userName": "Demo User",
+    "email": "demo@ticketflow.app",
+    "notificationsEnabled": true,
+    "darkModeEnabled": false
+  }
+}
