@@ -7,18 +7,30 @@ import '../../domain/entities/my_ticket_entity.dart';
 import '../models/ticket_result_details_args.dart';
 
 class TicketDetailsPage extends StatelessWidget {
-  const TicketDetailsPage.myTicket({
-    super.key,
-    required this.ticket,
-  }) : resultTicket = null;
+  const TicketDetailsPage.myTicket({super.key, required this.ticket})
+    : resultTicket = null;
 
-  const TicketDetailsPage.resultTicket({
-    super.key,
-    required this.resultTicket,
-  }) : ticket = null;
+  const TicketDetailsPage.resultTicket({super.key, required this.resultTicket})
+    : ticket = null;
 
   final MyTicketEntity? ticket;
   final TicketResultDetailsArgs? resultTicket;
+
+  String _formatDateTime(BuildContext context, String raw) {
+    final parsed = DateTime.tryParse(raw);
+    if (parsed == null) {
+      return raw;
+    }
+
+    final local = parsed.toLocal();
+    final dateText = MaterialLocalizations.of(context).formatMediumDate(local);
+    final timeText = MaterialLocalizations.of(context).formatTimeOfDay(
+      TimeOfDay.fromDateTime(local),
+      alwaysUse24HourFormat: false,
+    );
+
+    return '$dateText • $timeText';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +38,9 @@ class TicketDetailsPage extends StatelessWidget {
     final result = resultTicket;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Ticket Details', style: AppTypography.headingMd)),
+      appBar: AppBar(
+        title: Text('Ticket Details', style: AppTypography.headingMd),
+      ),
       body: ListView(
         padding: AppSpacing.screenPadding,
         children: [
@@ -35,7 +49,9 @@ class TicketDetailsPage extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: AppSpacing.roundedLg,
-              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
               boxShadow: AppShadows.card,
             ),
             child: Column(
@@ -47,7 +63,8 @@ class TicketDetailsPage extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  myTicket?.vehicleNumber ?? 'Vehicle details available after booking',
+                  myTicket?.vehicleNumber ??
+                      'Vehicle details available after booking',
                   style: AppTypography.labelMd,
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -64,11 +81,19 @@ class TicketDetailsPage extends StatelessWidget {
                 ),
                 _DetailRow(
                   label: 'Departure',
-                  value: myTicket?.departureDateTime ?? result?.ticket.timeRange ?? '-',
+                  value: _formatDateTime(
+                    context,
+                    myTicket?.departureDateTime ??
+                        result?.ticket.timeRange ??
+                        '-',
+                  ),
                 ),
                 _DetailRow(
                   label: 'Depart From',
-                  value: myTicket?.departurePoint ?? result?.criteria.departureCity ?? '-',
+                  value:
+                      myTicket?.departurePoint ??
+                      result?.criteria.departureCity ??
+                      '-',
                 ),
                 _DetailRow(
                   label: 'Seat',
@@ -80,7 +105,8 @@ class TicketDetailsPage extends StatelessWidget {
           if (result != null) ...[
             const SizedBox(height: AppSpacing.base),
             FilledButton(
-              onPressed: () => context.push(AppRoutes.seatSelection, extra: result.ticket),
+              onPressed: () =>
+                  context.push(AppRoutes.seatSelection, extra: result.ticket),
               child: const Text('Select Seats'),
             ),
           ],

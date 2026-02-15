@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../config/app_routes.dart';
 import '../../../../config/theme/theme.dart';
 import '../../domain/entities/my_ticket_entity.dart';
 import '../providers/home_overview_provider.dart';
@@ -69,11 +71,32 @@ class _HomeTab extends ConsumerWidget {
   }
 }
 
-class _TicketsTab extends ConsumerWidget {
+class _TicketsTab extends ConsumerStatefulWidget {
   const _TicketsTab();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_TicketsTab> createState() => _TicketsTabState();
+}
+
+class _TicketsTabState extends ConsumerState<_TicketsTab> {
+  late final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToLatest() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final tickets = ref.watch(myTicketsProvider);
 
     return tickets.when(
@@ -91,9 +114,13 @@ class _TicketsTab extends ConsumerWidget {
           );
         }
 
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _scrollToLatest();
+        });
+
         return ListView.separated(
-          reverse: true,
-          shrinkWrap: true,
+          controller: _scrollController,
           padding: AppSpacing.screenPadding,
           itemCount: items.length,
           separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
@@ -112,34 +139,58 @@ class _MyTicketCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final departureDateTime = _formatDateTime(
+      context,
+      ticket.departureDateTime,
+    );
 
-    return Container(
-      padding: AppSpacing.cardPadding,
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: AppSpacing.roundedLg,
-        border: Border.all(color: colorScheme.outlineVariant),
-        boxShadow: AppShadows.card,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${ticket.from} → ${ticket.to}',
-                  style: AppTypography.headingMd,
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(ticket.departureDateTime, style: AppTypography.bodySm),
-              ],
+    return InkWell(
+      borderRadius: AppSpacing.roundedLg,
+      onTap: () => context.push(AppRoutes.ticketDetails, extra: ticket),
+      child: Container(
+        padding: AppSpacing.cardPadding,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: AppSpacing.roundedLg,
+          border: Border.all(color: colorScheme.outlineVariant),
+          boxShadow: AppShadows.card,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${ticket.from} → ${ticket.to}',
+                    style: AppTypography.headingMd,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(departureDateTime, style: AppTypography.bodySm),
+                ],
+              ),
             ),
-          ),
-          Text('Seat ${ticket.seatNumber}', style: AppTypography.labelMd),
-        ],
+            Text('Seat ${ticket.seatNumber}', style: AppTypography.labelMd),
+          ],
+        ),
       ),
     );
+  }
+
+  String _formatDateTime(BuildContext context, String raw) {
+    final parsed = DateTime.tryParse(raw);
+    if (parsed == null) {
+      return raw;
+    }
+
+    final local = parsed.toLocal();
+    final dateText = MaterialLocalizations.of(context).formatMediumDate(local);
+    final timeText = MaterialLocalizations.of(context).formatTimeOfDay(
+      TimeOfDay.fromDateTime(local),
+      alwaysUse24HourFormat: false,
+    );
+
+    return '$dateText • $timeText';
   }
 }
 

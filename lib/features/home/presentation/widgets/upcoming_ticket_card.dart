@@ -21,6 +21,7 @@ class UpcomingTicketCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final normalizedDepartureTime = _formatDateTime(context, departureTime);
 
     return InkWell(
       borderRadius: AppSpacing.roundedLg,
@@ -41,7 +42,7 @@ class UpcomingTicketCard extends StatelessWidget {
                 children: [
                   Text(from, style: AppTypography.headingMd),
                   const SizedBox(height: AppSpacing.xs),
-                  Text(departureTime, style: AppTypography.bodySm),
+                  Text(normalizedDepartureTime, style: AppTypography.bodySm),
                 ],
               ),
             ),
@@ -60,5 +61,21 @@ class UpcomingTicketCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDateTime(BuildContext context, String raw) {
+    final parsed = DateTime.tryParse(raw);
+    if (parsed == null) {
+      return raw;
+    }
+
+    final local = parsed.toLocal();
+    final dateText = MaterialLocalizations.of(context).formatMediumDate(local);
+    final timeText = MaterialLocalizations.of(context).formatTimeOfDay(
+      TimeOfDay.fromDateTime(local),
+      alwaysUse24HourFormat: false,
+    );
+
+    return '$dateText • $timeText';
   }
 }
