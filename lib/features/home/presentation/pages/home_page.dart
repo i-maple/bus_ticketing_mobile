@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/app_routes.dart';
 import '../../../../config/theme/theme.dart';
+import '../../domain/entities/my_ticket_entity.dart';
 import '../../../payment/domain/entities/booking_payment_status.dart';
 import '../../../payment/domain/entities/payment_booking_record.dart';
 import '../../../payment/presentation/models/khalti_checkout_args.dart';
@@ -96,7 +97,7 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
     final tickets = ref.watch(myTicketsProvider);
     final paymentRecords = ref
         .read(paymentCoordinatorProvider)
-      .activeTicketRecords();
+        .activeTicketRecords();
 
     return tickets.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -107,7 +108,12 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
         ),
       ),
       data: (items) {
-        if (items.isEmpty && paymentRecords.isEmpty) {
+        final groupedBookedTickets = _groupTicketsBySession(items);
+        final pendingRecords = paymentRecords
+            .where((record) => record.status == BookingPaymentStatus.pending)
+            .toList();
+
+        if (groupedBookedTickets.isEmpty && pendingRecords.isEmpty) {
           return Center(
             child: Text('No tickets yet', style: AppTypography.bodyMd),
           );
@@ -124,23 +130,25 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
         return ListView.separated(
           controller: _scrollController,
           padding: AppSpacing.screenPadding,
-          itemCount: items.length + paymentRecords.length,
+          itemCount: groupedBookedTickets.length + pendingRecords.length,
           separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
           itemBuilder: (context, index) {
-            if (index < items.length) {
-              final ticket = items[index];
+            if (index < groupedBookedTickets.length) {
+              final groupedSession = groupedBookedTickets[index];
+              final ticket = groupedSession.tickets.first;
               return UpcomingTicketCard(
                 from: ticket.from,
                 to: ticket.to,
                 departureTime: ticket.departureDateTime,
-                seatNumber: ticket.seatNumber,
+                seatNumber: groupedSession.seatNumbers.join(', '),
                 status: BookingPaymentStatus.booked,
                 onTap: () =>
                     context.push(AppRoutes.ticketDetails, extra: ticket),
               );
             }
 
-            final paymentRecord = paymentRecords[index - items.length];
+            final paymentRecord =
+                pendingRecords[index - groupedBookedTickets.length];
             return UpcomingTicketCard(
               from: _displayDeparture(paymentRecord),
               to: _displayDestination(paymentRecord),
@@ -157,6 +165,40 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
         );
       },
     );
+  }
+
+  List<_GroupedTicketSession> _groupTicketsBySession(
+    List<MyTicketEntity> tickets,
+  ) {
+    final grouped = <String, _GroupedTicketSession>{};
+
+    for (final item in tickets) {
+      final key =
+          '${item.from}|${item.to}|${item.departureDateTime}|${item.vehicleName}|${item.vehicleNumber}';
+      final current = grouped[key];
+
+      if (current == null) {
+        grouped[key] = _GroupedTicketSession(
+          tickets: [item],
+          seatNumbers: [item.seatNumber],
+        );
+        continue;
+      }
+
+      grouped[key] = _GroupedTicketSession(
+        tickets: [...current.tickets, item],
+        seatNumbers: [...current.seatNumbers, item.seatNumber],
+      );
+    }
+
+    return grouped.values
+        .map(
+          (group) => _GroupedTicketSession(
+            tickets: group.tickets,
+            seatNumbers: group.seatNumbers.toSet().toList()..sort(),
+          ),
+        )
+        .toList();
   }
 
   String _displayDeparture(PaymentBookingRecord pending) {
@@ -227,6 +269,13 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(feedback)));
     }
   }
+}
+
+class _GroupedTicketSession {
+  const _GroupedTicketSession({required this.tickets, required this.seatNumbers});
+
+  final List<MyTicketEntity> tickets;
+  final List<String> seatNumbers;
 }
 
 class _SettingsTab extends ConsumerWidget {

@@ -25,6 +25,7 @@ class UpcomingTicketCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final normalizedDepartureTime = _formatDateTime(context, departureTime);
+    final normalizedSeatLabel = _formatSeatLabel(seatNumber);
     final badgeColors = _badgeColors(colorScheme, status);
     final statusText = switch (status) {
       BookingPaymentStatus.booked => 'Successful',
@@ -87,7 +88,7 @@ class UpcomingTicketCard extends StatelessWidget {
                     children: [
                       Text(to, style: AppTypography.headingMd),
                       const SizedBox(height: AppSpacing.xs),
-                      Text('Seat $seatNumber', style: AppTypography.bodySm),
+                      Text(normalizedSeatLabel, style: AppTypography.bodySm),
                     ],
                   ),
                 ),
@@ -133,6 +134,20 @@ class UpcomingTicketCard extends StatelessWidget {
     );
 
     return '$dateText • $timeText';
+  }
+
+  String _formatSeatLabel(String rawSeatValue) {
+    final seats = rawSeatValue
+        .split(',')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+
+    if (seats.length <= 1) {
+      return 'Seat ${seats.isEmpty ? rawSeatValue : seats.first}';
+    }
+
+    return 'Seats ${seats.join(', ')}';
   }
 }
 
