@@ -6,4 +6,5 @@ abstract final class AppRoutes {
   static const ticketDetails = '/ticket-details';
   static const seatSelection = '/seat-selection';
   static const bookingSuccess = '/booking-success';
+  static const khaltiCheckout = '/payment/khalti-checkout';
 }

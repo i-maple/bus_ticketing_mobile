@@ -8,11 +8,13 @@ class SeatSelectionBottomBar extends StatelessWidget {
     required this.selectedSeats,
     required this.totalPrice,
     required this.onContinue,
+    this.isProcessing = false,
   });
 
   final List<String> selectedSeats;
   final int totalPrice;
   final VoidCallback onContinue;
+  final bool isProcessing;
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +50,16 @@ class SeatSelectionBottomBar extends StatelessWidget {
               ),
             ),
             FilledButton(
-              onPressed: selectedSeats.isEmpty ? null : onContinue,
-              child: const Text('Continue'),
+              onPressed: selectedSeats.isEmpty || isProcessing
+                  ? null
+                  : onContinue,
+              child: isProcessing
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Continue'),
             ),
           ],
         ),

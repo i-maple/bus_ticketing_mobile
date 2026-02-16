@@ -4,6 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/app_routes.dart';
 import '../../../../config/theme/theme.dart';
+import '../../domain/entities/my_ticket_entity.dart';
+import '../../../payment/domain/entities/booking_payment_status.dart';
+import '../../../payment/domain/entities/payment_booking_record.dart';
+import '../../../payment/presentation/models/khalti_checkout_args.dart';
+import '../../../payment/presentation/providers/payment_provider.dart';
 import '../providers/home_overview_provider.dart';
 import '../providers/theme_mode_provider.dart';
 import '../widgets/home_search_section.dart';
@@ -29,7 +34,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       body: IndexedStack(
         index: _currentIndex,
-        children: const [_HomeTab(), _TicketsTab(), _SettingsTab()],
+        children: [
+          _HomeTab(onSeeAllTickets: () => setState(() => _currentIndex = 1)),
+          const _TicketsTab(),
+          const _SettingsTab(),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -57,14 +66,16 @@ class _HomePageState extends ConsumerState<HomePage> {
 }
 
 class _HomeTab extends ConsumerWidget {
-  const _HomeTab();
+  const _HomeTab({required this.onSeeAllTickets});
+
+  final VoidCallback onSeeAllTickets;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
       padding: AppSpacing.screenPadding,
       children: [
-        const HomeSearchSection(),
+        HomeSearchSection(onSeeAllTickets: onSeeAllTickets),
         const SizedBox(height: AppSpacing.xl),
       ],
     );
@@ -87,17 +98,12 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
     super.dispose();
   }
 
-  void _scrollToLatest() {
-    if (!_scrollController.hasClients) {
-      return;
-    }
-
-    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-  }
-
   @override
   Widget build(BuildContext context) {
     final tickets = ref.watch(myTicketsProvider);
+    final paymentRecords = ref
+        .read(paymentCoordinatorProvider)
+        .activeTicketRecords();
 
     return tickets.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -108,36 +114,216 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
         ),
       ),
       data: (items) {
-        if (items.isEmpty) {
+        final groupedBookedTickets = _groupTicketsBySession(items);
+        final nonBookedRecords = paymentRecords
+            .where((record) => record.status != BookingPaymentStatus.booked)
+            .toList();
+        final ticketCards = _buildSortedTicketCards(
+          groupedBookedTickets: groupedBookedTickets,
+          nonBookedRecords: nonBookedRecords,
+        );
+
+        if (ticketCards.isEmpty) {
           return Center(
-            child: Text('No booked tickets yet', style: AppTypography.bodyMd),
+            child: Text('No tickets yet', style: AppTypography.bodyMd),
           );
         }
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          _scrollToLatest();
-        });
 
         return ListView.separated(
           controller: _scrollController,
           padding: AppSpacing.screenPadding,
-          itemCount: items.length,
+          itemCount: ticketCards.length,
           separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
           itemBuilder: (context, index) {
-            final ticket = items[index];
+            final ticketCard = ticketCards[index];
+
+            if (ticketCard.groupedSession != null) {
+              final groupedSession = ticketCard.groupedSession!;
+              final ticket = groupedSession.tickets.first;
+              return UpcomingTicketCard(
+                from: ticket.from,
+                to: ticket.to,
+                departureTime: ticket.departureDateTime,
+                seatNumber: groupedSession.seatNumbers.join(', '),
+                status: BookingPaymentStatus.booked,
+                onTap: () =>
+                    context.push(AppRoutes.ticketDetails, extra: ticket),
+              );
+            }
+
+            final paymentRecord = ticketCard.paymentRecord!;
             return UpcomingTicketCard(
-              from: ticket.from,
-              to: ticket.to,
-              departureTime: ticket.departureDateTime,
-              seatNumber: ticket.seatNumber,
-              onTap: () => context.push(AppRoutes.ticketDetails, extra: ticket),
+              from: _displayDeparture(paymentRecord),
+              to: _displayDestination(paymentRecord),
+              departureTime: paymentRecord.updatedAt.toIso8601String(),
+              seatNumber: paymentRecord.seatNumbers.join(', '),
+              status: paymentRecord.status,
+              onTap: () {
+                if (paymentRecord.status == BookingPaymentStatus.pending) {
+                  _openPendingPayment(context, paymentRecord);
+                }
+                else if(paymentRecord.status == BookingPaymentStatus.cancelled) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('This booking was cancelled.')));
+                }
+              },
             );
           },
         );
       },
     );
   }
+
+  List<_TicketCardItem> _buildSortedTicketCards({
+    required List<_GroupedTicketSession> groupedBookedTickets,
+    required List<PaymentBookingRecord> nonBookedRecords,
+  }) {
+    final cards = <_TicketCardItem>[
+      ...groupedBookedTickets.map((groupedSession) {
+        final departure = DateTime.tryParse(
+          groupedSession.tickets.first.departureDateTime,
+        );
+        return _TicketCardItem(
+          sortAt: departure ?? DateTime.fromMillisecondsSinceEpoch(0),
+          groupedSession: groupedSession,
+        );
+      }),
+      ...nonBookedRecords.map(
+        (paymentRecord) => _TicketCardItem(
+          sortAt: paymentRecord.updatedAt,
+          paymentRecord: paymentRecord,
+        ),
+      ),
+    ];
+
+    cards.sort((a, b) => b.sortAt.compareTo(a.sortAt));
+    return cards;
+  }
+
+  List<_GroupedTicketSession> _groupTicketsBySession(
+    List<MyTicketEntity> tickets,
+  ) {
+    final grouped = <String, _GroupedTicketSession>{};
+
+    for (final item in tickets) {
+      final key =
+          '${item.from}|${item.to}|${item.departureDateTime}|${item.vehicleName}|${item.vehicleNumber}';
+      final current = grouped[key];
+
+      if (current == null) {
+        grouped[key] = _GroupedTicketSession(
+          tickets: [item],
+          seatNumbers: [item.seatNumber],
+        );
+        continue;
+      }
+
+      grouped[key] = _GroupedTicketSession(
+        tickets: [...current.tickets, item],
+        seatNumbers: [...current.seatNumbers, item.seatNumber],
+      );
+    }
+
+    return grouped.values
+        .map(
+          (group) => _GroupedTicketSession(
+            tickets: group.tickets,
+            seatNumbers: group.seatNumbers.toSet().toList()..sort(),
+          ),
+        )
+        .toList();
+  }
+
+  String _displayDeparture(PaymentBookingRecord pending) {
+    final departure = pending.departureCity?.trim();
+    if (departure != null && departure.isNotEmpty) {
+      return departure;
+    }
+
+    final vehicleName = pending.vehicleName?.trim();
+    if (vehicleName != null && vehicleName.isNotEmpty) {
+      return vehicleName;
+    }
+
+    return 'Pending Route';
+  }
+
+  String _displayDestination(PaymentBookingRecord pending) {
+    final destination = pending.destinationCity?.trim();
+    if (destination != null && destination.isNotEmpty) {
+      return destination;
+    }
+
+    return 'Awaiting Payment';
+  }
+
+  Future<void> _openPendingPayment(
+    BuildContext context,
+    PaymentBookingRecord pending,
+  ) async {
+    final paymentUrl = pending.paymentUrl?.trim();
+    if (paymentUrl == null || paymentUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Payment session expired. Please rebook your seat.'),
+        ),
+      );
+      return;
+    }
+
+    final paymentStatus = await context.push<BookingPaymentStatus>(
+      AppRoutes.khaltiCheckout,
+      extra: KhaltiCheckoutArgs(
+        busId: pending.busId,
+        purchaseOrderId: pending.purchaseOrderId,
+        pidx: pending.pidx,
+        paymentUrl: paymentUrl,
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (paymentStatus == BookingPaymentStatus.booked) {
+      context.go(AppRoutes.bookingSuccess);
+      return;
+    }
+
+    setState(() {});
+
+    final feedback = switch (paymentStatus) {
+      BookingPaymentStatus.pending =>
+        'Payment is still pending. Complete payment to confirm your ticket.',
+      BookingPaymentStatus.cancelled ||
+      null => 'Payment cancelled or failed.',
+      BookingPaymentStatus.booked => '',
+    };
+
+    if (feedback.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(feedback)));
+    }
+  }
+}
+
+class _GroupedTicketSession {
+  const _GroupedTicketSession({required this.tickets, required this.seatNumbers});
+
+  final List<MyTicketEntity> tickets;
+  final List<String> seatNumbers;
+}
+
+class _TicketCardItem {
+  const _TicketCardItem({
+    required this.sortAt,
+    this.groupedSession,
+    this.paymentRecord,
+  }) : assert(
+         groupedSession != null || paymentRecord != null,
+         'Either groupedSession or paymentRecord must be provided.',
+       );
+
+  final DateTime sortAt;
+  final _GroupedTicketSession? groupedSession;
+  final PaymentBookingRecord? paymentRecord;
 }
 
 class _SettingsTab extends ConsumerWidget {

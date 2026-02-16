@@ -6,12 +6,13 @@ import '../../../../config/app_routes.dart';
 import '../../../../config/theme/theme.dart';
 import '../models/nepal_cities.dart';
 import '../models/trip_search_criteria.dart';
-import '../providers/home_overview_provider.dart';
+import 'home_upcoming_ticket_preview.dart';
 import 'search_input_field.dart';
-import 'upcoming_ticket_card.dart';
 
 class HomeSearchSection extends ConsumerStatefulWidget {
-  const HomeSearchSection({super.key});
+  const HomeSearchSection({super.key, this.onSeeAllTickets});
+
+  final VoidCallback? onSeeAllTickets;
 
   @override
   ConsumerState<HomeSearchSection> createState() => _HomeSearchSectionState();
@@ -115,7 +116,6 @@ class _HomeSearchSectionState extends ConsumerState<HomeSearchSection> {
 
   @override
   Widget build(BuildContext context) {
-    final myTickets = ref.watch(myTicketsProvider);
     final dateLabel = _travelDate == null
         ? 'Select travel date'
         : MaterialLocalizations.of(context).formatFullDate(_travelDate!);
@@ -166,32 +166,14 @@ class _HomeSearchSectionState extends ConsumerState<HomeSearchSection> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Upcoming Tickets', style: AppTypography.headingMd),
-            TextButton(onPressed: () {}, child: const Text('See all')),
+            TextButton(
+              onPressed: widget.onSeeAllTickets,
+              child: const Text('See all'),
+            ),
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        myTickets.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.symmetric(vertical: AppSpacing.base),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (_, _) => const SizedBox.shrink(),
-          data: (tickets) {
-            if (tickets.isEmpty) {
-              return Text('No upcoming tickets', style: AppTypography.bodyMd);
-            }
-
-            final nextTicket = tickets.last;
-            return UpcomingTicketCard(
-              from: nextTicket.from,
-              to: nextTicket.to,
-              departureTime: nextTicket.departureDateTime,
-              seatNumber: nextTicket.seatNumber,
-              onTap: () =>
-                  context.push(AppRoutes.ticketDetails, extra: nextTicket),
-            );
-          },
-        ),
+        const HomeUpcomingTicketPreview(),
       ],
     );
   }

@@ -8,6 +8,8 @@ import '../features/home/presentation/models/ticket_option.dart';
 import '../features/home/presentation/models/ticket_result_details_args.dart';
 import '../features/home/presentation/models/trip_search_criteria.dart';
 import '../features/home/domain/entities/my_ticket_entity.dart';
+import '../features/payment/presentation/models/khalti_checkout_args.dart';
+import '../features/payment/presentation/pages/khalti_checkout_page.dart';
 import '../features/home/presentation/pages/ticket_details_page.dart';
 import '../features/home/presentation/pages/ticket_results_page.dart';
 import '../features/seat_selection/presentation/pages/booking_success_page.dart';
@@ -34,8 +36,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.ticketResults,
         builder: (context, state) {
-          final criteria = state.extra as TripSearchCriteria;
-          return TicketResultsPage(criteria: criteria);
+          final extra = state.extra;
+          if (extra is TripSearchCriteria) {
+            return TicketResultsPage(criteria: extra);
+          }
+
+          return UnknownRoutePage(routeName: state.uri.toString());
         },
       ),
       GoRoute(
@@ -56,13 +62,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.seatSelection,
         builder: (context, state) {
-          final ticket = state.extra as TicketOption?;
-          return SeatSelectionPage(ticket: ticket);
+          final extra = state.extra;
+          if (extra == null || extra is TicketOption) {
+            return SeatSelectionPage(ticket: extra as TicketOption?);
+          }
+
+          return UnknownRoutePage(routeName: state.uri.toString());
         },
       ),
       GoRoute(
         path: AppRoutes.bookingSuccess,
         builder: (context, state) => const BookingSuccessPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.khaltiCheckout,
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is KhaltiCheckoutArgs) {
+            return KhaltiCheckoutPage(args: extra);
+          }
+
+          return UnknownRoutePage(routeName: state.uri.toString());
+        },
       ),
     ],
     errorBuilder: (context, state) =>

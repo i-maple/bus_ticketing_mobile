@@ -18,3 +18,10 @@ class ParsingException implements Exception {
   final String message;
   final String? code;
 }
+
+class NetworkException implements Exception {
+  const NetworkException(this.message, {this.code});
+
+  final String message;
+  final String? code;
+}

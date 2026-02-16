@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'config/app_router.dart';
 import 'config/theme/app_theme.dart';
 import 'core/di/injector.dart';
+import 'features/payment/presentation/providers/payment_provider.dart';
 import 'features/home/presentation/providers/theme_mode_provider.dart';
 
 Future<void> main() async {
@@ -35,11 +36,54 @@ Future<void> main() async {
   runApp(const ProviderScope(child: TicketBookingApp()));
 }
 
-class TicketBookingApp extends ConsumerWidget {
+class TicketBookingApp extends ConsumerStatefulWidget {
   const TicketBookingApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TicketBookingApp> createState() => _TicketBookingAppState();
+}
+
+class _TicketBookingAppState extends ConsumerState<TicketBookingApp>
+    with WidgetsBindingObserver {
+  bool _isRecoveringPendingPayments = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _recoverPendingPayments();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _recoverPendingPayments();
+    }
+  }
+
+  Future<void> _recoverPendingPayments() async {
+    if (_isRecoveringPendingPayments) {
+      return;
+    }
+
+    _isRecoveringPendingPayments = true;
+    try {
+      await ref.read(paymentCoordinatorProvider).recoverPendingPayments();
+    } finally {
+      _isRecoveringPendingPayments = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final appRouter = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeControllerProvider);
 

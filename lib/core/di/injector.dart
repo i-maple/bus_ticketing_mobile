@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:http/http.dart' as http;
 
 import '../../features/onboarding/data/data_sources/local/onboarding_local_data_source.dart';
 import '../../features/onboarding/data/repositories/onboarding_repository_impl.dart';
@@ -18,6 +19,13 @@ import '../../features/home/domain/usecases/get_settings_usecase.dart';
 import '../../features/home/domain/usecases/get_dark_mode_preference_usecase.dart';
 import '../../features/home/domain/usecases/search_tickets_usecase.dart';
 import '../../features/home/domain/usecases/set_dark_mode_preference_usecase.dart';
+import '../../features/payment/data/data_sources/local/payment_booking_local_data_source.dart';
+import '../../features/payment/data/data_sources/remote/khalti_remote_data_source.dart';
+import '../../features/payment/data/repositories/payment_repository_impl.dart';
+import '../../features/payment/domain/repositories/payment_repository.dart';
+import '../../features/payment/domain/usecases/initiate_khalti_payment_usecase.dart';
+import '../../features/payment/domain/usecases/lookup_khalti_payment_usecase.dart';
+import '../../features/payment/domain/usecases/save_payment_booking_record_usecase.dart';
 import '../../features/seat_selection/data/data_sources/local/seat_selection_local_data_source.dart';
 import '../../features/seat_selection/data/repositories/seat_selection_repository_impl.dart';
 import '../../features/seat_selection/domain/repositories/seat_selection_repository.dart';
@@ -46,6 +54,10 @@ Future<void> configureDependencies() async {
     );
   }
 
+  if (!sl.isRegistered<http.Client>()) {
+    sl.registerLazySingleton<http.Client>(http.Client.new);
+  }
+
   if (!sl.isRegistered<SeatSelectionLocalDataSource>()) {
     sl.registerLazySingleton<SeatSelectionLocalDataSource>(
       () => SeatSelectionLocalDataSourceImpl(
@@ -70,6 +82,48 @@ Future<void> configureDependencies() async {
   if (!sl.isRegistered<BookTicketUseCase>()) {
     sl.registerLazySingleton<BookTicketUseCase>(
       () => BookTicketUseCase(sl<SeatSelectionRepository>()),
+    );
+  }
+
+  if (!sl.isRegistered<KhaltiRemoteDataSource>()) {
+    sl.registerLazySingleton<KhaltiRemoteDataSource>(
+      () => KhaltiRemoteDataSourceImpl(sl<http.Client>()),
+    );
+  }
+
+  if (!sl.isRegistered<PaymentBookingLocalDataSource>()) {
+    sl.registerLazySingleton<PaymentBookingLocalDataSource>(
+      () => PaymentBookingLocalDataSourceImpl(
+        sl<GraphQLClient>(),
+        sl<HiveService>(),
+      ),
+    );
+  }
+
+  if (!sl.isRegistered<PaymentRepository>()) {
+    sl.registerLazySingleton<PaymentRepository>(
+      () => PaymentRepositoryImpl(
+        sl<KhaltiRemoteDataSource>(),
+        sl<PaymentBookingLocalDataSource>(),
+      ),
+    );
+  }
+
+  if (!sl.isRegistered<InitiateKhaltiPaymentUseCase>()) {
+    sl.registerLazySingleton<InitiateKhaltiPaymentUseCase>(
+      () => InitiateKhaltiPaymentUseCase(sl<PaymentRepository>()),
+    );
+  }
+
+  if (!sl.isRegistered<LookupKhaltiPaymentUseCase>()) {
+    sl.registerLazySingleton<LookupKhaltiPaymentUseCase>(
+      () => LookupKhaltiPaymentUseCase(sl<PaymentRepository>()),
+    );
+  }
+
+  if (!sl.isRegistered<SavePaymentBookingRecordUseCase>()) {
+    sl.registerLazySingleton<SavePaymentBookingRecordUseCase>(
+      () => SavePaymentBookingRecordUseCase(sl<PaymentRepository>()),
     );
   }
 
