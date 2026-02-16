@@ -12,7 +12,6 @@ import 'package:bus_ticketing_mobile/features/payment/data/data_sources/local/pa
 import 'package:bus_ticketing_mobile/features/payment/presentation/coordinators/payment_coordinator.dart';
 import 'package:bus_ticketing_mobile/features/payment/presentation/handlers/khalti_checkout_handler.dart';
 import 'package:bus_ticketing_mobile/features/payment/presentation/models/khalti_checkout_args.dart';
-import 'package:bus_ticketing_mobile/features/payment/presentation/providers/payment_provider.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 

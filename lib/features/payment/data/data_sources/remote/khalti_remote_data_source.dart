@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../../../config/app_config.dart';
@@ -31,8 +32,8 @@ class KhaltiRemoteDataSourceImpl implements KhaltiRemoteDataSource {
       body: params.toJson(),
     );
 
-    print('Resbody: ${response.body}');
-    print('Params: ${params.toJson()}');
+    debugPrint('Resbody: ${response.body}');
+    debugPrint('Params: ${params.toJson()}');
     final payload = _parseBody(response.body);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw ServerException(_extractErrorMessage(payload), code: '${response.statusCode}');

@@ -160,7 +160,7 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
               status: paymentRecord.status,
               onTap: () {
                 if (paymentRecord.status == BookingPaymentStatus.pending) {
-                  _openPendingPayment(context, paymentRecord);
+                  _openPendingPayment(paymentRecord);
                 }
                 else if(paymentRecord.status == BookingPaymentStatus.cancelled) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -257,13 +257,12 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
     return 'Awaiting Payment';
   }
 
-  Future<void> _openPendingPayment(
-    BuildContext context,
-    PaymentBookingRecord pending,
-  ) async {
+  Future<void> _openPendingPayment(PaymentBookingRecord pending) async {
+    final router = GoRouter.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     final paymentUrl = pending.paymentUrl?.trim();
     if (paymentUrl == null || paymentUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(
           content: Text('Payment session expired. Please rebook your seat.'),
         ),
@@ -271,7 +270,7 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
       return;
     }
 
-    final paymentStatus = await context.push<BookingPaymentStatus>(
+    final paymentStatus = await router.push<BookingPaymentStatus>(
       AppRoutes.khaltiCheckout,
       extra: KhaltiCheckoutArgs(
         busId: pending.busId,
@@ -284,7 +283,7 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
     if (!mounted) return;
 
     if (paymentStatus == BookingPaymentStatus.booked) {
-      context.go(AppRoutes.bookingSuccess);
+      router.go(AppRoutes.bookingSuccess);
       return;
     }
 
@@ -299,7 +298,7 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
     };
 
     if (feedback.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(feedback)));
+      messenger.showSnackBar(SnackBar(content: Text(feedback)));
     }
   }
 }
