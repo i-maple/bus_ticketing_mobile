@@ -1,3 +1,4 @@
+import 'package:bus_ticketing_mobile/config/app_config.dart';
 import 'package:bus_ticketing_mobile/core/error/failures.dart';
 import 'package:bus_ticketing_mobile/features/payment/domain/entities/booking_payment_status.dart';
 import 'package:bus_ticketing_mobile/features/payment/domain/entities/khalti_initiate_result.dart';
@@ -296,16 +297,27 @@ void main() {
     });
 
     test('isReturnUrl accepts configured callback route', () {
+      final configured = Uri.parse(AppConfig.khaltiReturnUrl);
+      final callback = configured.replace(
+        queryParameters: const <String, String>{'pidx': 'abc'},
+      );
+
       final isMatch = handler.isReturnUrl(
-        Uri.parse('bus-ticketing://payment/khalti-return?pidx=abc'),
+        callback,
       );
 
       expect(isMatch, isTrue);
     });
 
     test('isReturnUrl rejects non-callback route', () {
+      final configured = Uri.parse(AppConfig.khaltiReturnUrl);
+      final nonCallback = configured.replace(
+        path: '/payment/other-path',
+        queryParameters: const <String, String>{'pidx': 'abc'},
+      );
+
       final isMatch = handler.isReturnUrl(
-        Uri.parse('bus-ticketing://payment/other-path?pidx=abc'),
+        nonCallback,
       );
 
       expect(isMatch, isFalse);

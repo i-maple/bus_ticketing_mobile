@@ -1,4 +1,15 @@
 import 'package:bus_ticketing_mobile/features/home/presentation/models/ticket_option.dart';
+import 'package:bus_ticketing_mobile/features/payment/data/data_sources/local/payment_booking_local_data_source.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/entities/khalti_initiate_params.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/entities/khalti_initiate_result.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/entities/khalti_lookup_result.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/entities/payment_booking_record.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/repositories/payment_repository.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/usecases/initiate_khalti_payment_usecase.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/usecases/lookup_khalti_payment_usecase.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/usecases/save_payment_booking_record_usecase.dart';
+import 'package:bus_ticketing_mobile/features/payment/presentation/coordinators/payment_coordinator.dart';
+import 'package:bus_ticketing_mobile/features/payment/presentation/providers/payment_provider.dart';
 import 'package:bus_ticketing_mobile/features/seat_selection/domain/repositories/seat_selection_repository.dart';
 import 'package:bus_ticketing_mobile/features/seat_selection/domain/entities/seat_entity.dart';
 import 'package:bus_ticketing_mobile/features/seat_selection/domain/usecases/book_ticket_usecase.dart';
@@ -26,6 +37,37 @@ class _FakeSeatSelectionRepository implements SeatSelectionRepository {
   }
 }
 
+class _FakePaymentRepository implements PaymentRepository {
+  @override
+  Future<Either<Failure, KhaltiInitiateResult>> initiatePayment(
+    KhaltiInitiateParams params,
+  ) async {
+    return const Left(UnknownFailure('not used in this test'));
+  }
+
+  @override
+  Future<Either<Failure, KhaltiLookupResult>> lookupPayment(String pidx) async {
+    return const Left(UnknownFailure('not used in this test'));
+  }
+
+  @override
+  Future<Either<Failure, void>> savePaymentBookingRecord(
+    PaymentBookingRecord record,
+  ) async {
+    return const Right(null);
+  }
+}
+
+class _FakePaymentBookingLocalDataSource implements PaymentBookingLocalDataSource {
+  @override
+  List<PaymentBookingRecord> getBookingRecords() {
+    return const <PaymentBookingRecord>[];
+  }
+
+  @override
+  Future<void> saveBookingRecord(PaymentBookingRecord record) async {}
+}
+
 void main() {
   testWidgets('renders seat selection with provided ticket info', (
     WidgetTester tester,
@@ -50,6 +92,14 @@ void main() {
           ),
           bookTicketUseCaseProvider.overrideWithValue(
             BookTicketUseCase(_FakeSeatSelectionRepository()),
+          ),
+          paymentCoordinatorProvider.overrideWithValue(
+            PaymentCoordinator(
+              InitiateKhaltiPaymentUseCase(_FakePaymentRepository()),
+              LookupKhaltiPaymentUseCase(_FakePaymentRepository()),
+              SavePaymentBookingRecordUseCase(_FakePaymentRepository()),
+              _FakePaymentBookingLocalDataSource(),
+            ),
           ),
         ],
         child: const MaterialApp(home: SeatSelectionPage(ticket: ticket)),

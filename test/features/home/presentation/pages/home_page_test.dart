@@ -10,6 +10,15 @@ import 'package:bus_ticketing_mobile/features/home/domain/usecases/get_my_ticket
 import 'package:bus_ticketing_mobile/features/home/domain/usecases/get_settings_usecase.dart';
 import 'package:bus_ticketing_mobile/features/home/domain/usecases/set_dark_mode_preference_usecase.dart';
 import 'package:bus_ticketing_mobile/features/home/presentation/pages/home_page.dart';
+import 'package:bus_ticketing_mobile/features/payment/data/data_sources/local/payment_booking_local_data_source.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/entities/khalti_initiate_params.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/entities/khalti_initiate_result.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/entities/khalti_lookup_result.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/entities/payment_booking_record.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/repositories/payment_repository.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/usecases/initiate_khalti_payment_usecase.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/usecases/lookup_khalti_payment_usecase.dart';
+import 'package:bus_ticketing_mobile/features/payment/domain/usecases/save_payment_booking_record_usecase.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -57,11 +66,53 @@ class _FakeHomeOverviewRepository implements HomeOverviewRepository {
   }
 }
 
+class _FakePaymentRepository implements PaymentRepository {
+  @override
+  Future<Either<Failure, KhaltiInitiateResult>> initiatePayment(
+    KhaltiInitiateParams params,
+  ) async {
+    return const Left(UnknownFailure('not used in this test'));
+  }
+
+  @override
+  Future<Either<Failure, KhaltiLookupResult>> lookupPayment(String pidx) async {
+    return const Left(UnknownFailure('not used in this test'));
+  }
+
+  @override
+  Future<Either<Failure, void>> savePaymentBookingRecord(
+    PaymentBookingRecord record,
+  ) async {
+    return const Right(null);
+  }
+}
+
+class _FakePaymentBookingLocalDataSource implements PaymentBookingLocalDataSource {
+  final List<PaymentBookingRecord> _records = <PaymentBookingRecord>[];
+
+  @override
+  List<PaymentBookingRecord> getBookingRecords() => List.of(_records);
+
+  @override
+  Future<void> saveBookingRecord(PaymentBookingRecord record) async {
+    final index = _records.indexWhere(
+      (item) => item.purchaseOrderId == record.purchaseOrderId,
+    );
+    if (index == -1) {
+      _records.add(record);
+      return;
+    }
+
+    _records[index] = record;
+  }
+}
+
 void main() {
   setUp(() async {
     await sl.reset();
 
     final repo = _FakeHomeOverviewRepository();
+    final paymentRepo = _FakePaymentRepository();
 
     sl.registerLazySingleton<GetHomeDashboardUseCase>(
       () => GetHomeDashboardUseCase(repo),
@@ -77,6 +128,18 @@ void main() {
     );
     sl.registerLazySingleton<SetDarkModePreferenceUseCase>(
       () => SetDarkModePreferenceUseCase(repo),
+    );
+    sl.registerLazySingleton<InitiateKhaltiPaymentUseCase>(
+      () => InitiateKhaltiPaymentUseCase(paymentRepo),
+    );
+    sl.registerLazySingleton<LookupKhaltiPaymentUseCase>(
+      () => LookupKhaltiPaymentUseCase(paymentRepo),
+    );
+    sl.registerLazySingleton<SavePaymentBookingRecordUseCase>(
+      () => SavePaymentBookingRecordUseCase(paymentRepo),
+    );
+    sl.registerLazySingleton<PaymentBookingLocalDataSource>(
+      _FakePaymentBookingLocalDataSource.new,
     );
   });
 
@@ -108,7 +171,7 @@ void main() {
       find.descendant(of: find.byType(AppBar), matching: find.text('Tickets')),
       findsOneWidget,
     );
-    expect(find.text('No booked tickets yet'), findsOneWidget);
+    expect(find.text('No tickets yet'), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.settings_outlined));
     await tester.pumpAndSettle();
