@@ -5,6 +5,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../../config/app_routes.dart';
 import '../../../../config/theme/theme.dart';
+import '../../../payment/domain/entities/booking_payment_status.dart';
+import '../../../payment/presentation/models/khalti_checkout_args.dart';
+import '../../../payment/presentation/providers/payment_provider.dart';
 import '../../domain/entities/seat_entity.dart';
 import '../providers/seat_selection_provider.dart';
 import 'seat_map_view.dart';
@@ -35,6 +38,8 @@ class SeatSelectionInteractiveSection extends ConsumerStatefulWidget {
 
 class _SeatSelectionInteractiveSectionState
     extends ConsumerState<SeatSelectionInteractiveSection> {
+  bool _isStartingCheckout = false;
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(seatSelectionProvider(widget.busId));
@@ -58,9 +63,76 @@ class _SeatSelectionInteractiveSectionState
                   .map((seat) => seat.seatNumber)
                   .toList(),
               totalPrice: state.totalPrice,
+              isProcessing: _isStartingCheckout,
               onContinue: () async {
+                if (_isStartingCheckout) {
+                  return;
+                }
+
+                setState(() => _isStartingCheckout = true);
                 final router = GoRouter.of(context);
                 final messenger = ScaffoldMessenger.of(context);
+
+                final paymentCoordinator = ref.read(paymentCoordinatorProvider);
+                final paymentStarted = await paymentCoordinator.startCheckout(
+                  busId: widget.busId,
+                  purchaseOrderName: widget.vehicleName,
+                  amount: state.totalPrice,
+                  departureCity: _safeRouteValue(
+                    widget.departureCity,
+                    fallback: 'Unknown Departure',
+                  ),
+                  destinationCity: _safeRouteValue(
+                    widget.destinationCity,
+                    fallback: 'Unknown Destination',
+                  ),
+                  selectedSeatNumbers: state.selectedSeats
+                      .map((seat) => seat.seatNumber)
+                      .toList(),
+                );
+
+                if (!mounted) return;
+
+                setState(() => _isStartingCheckout = false);
+
+                if (paymentStarted.isLeft()) {
+                  final failure = paymentStarted.swap().getOrElse(
+                    () => throw StateError('Unknown payment failure'),
+                  );
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(failure.message)),
+                  );
+                  return;
+                }
+
+                final checkoutSession = paymentStarted.getOrElse(
+                  () => throw StateError('Missing checkout session'),
+                );
+
+                final paymentStatus = await router.push<BookingPaymentStatus>(
+                  AppRoutes.khaltiCheckout,
+                  extra: KhaltiCheckoutArgs(
+                    busId: widget.busId,
+                    purchaseOrderId: checkoutSession.purchaseOrderId,
+                    pidx: checkoutSession.initiateResult.pidx,
+                    paymentUrl: checkoutSession.initiateResult.paymentUrl,
+                  ),
+                );
+
+                if (!mounted) return;
+
+                if (paymentStatus != BookingPaymentStatus.booked) {
+                  final feedback = switch (paymentStatus) {
+                    BookingPaymentStatus.pending =>
+                      'Payment is pending for 5 minutes. Complete payment to confirm seats.',
+                    BookingPaymentStatus.cancelled ||
+                    null => 'Payment cancelled or failed.',
+                    BookingPaymentStatus.booked => '',
+                  };
+                  messenger.showSnackBar(SnackBar(content: Text(feedback)));
+                  return;
+                }
+
                 final isBooked = await notifier.bookTicket(
                   vehicleName: widget.vehicleName,
                   departureCity: widget.departureCity,
@@ -107,9 +179,14 @@ class _SeatSelectionInteractiveSectionState
           );
         }
 
-        final occupied = widget.occupiedSeatNumbers
-            .map((item) => item.toUpperCase())
-            .toSet();
+        final pendingHeldSeats = ref
+            .read(paymentCoordinatorProvider)
+            .heldSeatNumbersForBus(widget.busId);
+
+        final occupied = <String>{
+          ...widget.occupiedSeatNumbers,
+          ...pendingHeldSeats,
+        }.map((item) => item.toUpperCase()).toSet();
         final adjustedSeats = seats.map((seat) {
           if (!occupied.contains(seat.seatNumber.toUpperCase())) return seat;
           return seat.copyWith(state: SeatState.booked);
@@ -122,5 +199,14 @@ class _SeatSelectionInteractiveSectionState
         );
       },
     );
+  }
+
+  String _safeRouteValue(String? value, {required String fallback}) {
+    final normalized = value?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return fallback;
+    }
+
+    return normalized;
   }
 }

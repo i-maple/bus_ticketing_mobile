@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/app_routes.dart';
 import '../../../../config/theme/theme.dart';
+import '../../../payment/domain/entities/booking_payment_status.dart';
+import '../../../payment/domain/entities/payment_booking_record.dart';
+import '../../../payment/presentation/models/khalti_checkout_args.dart';
+import '../../../payment/presentation/providers/payment_provider.dart';
 import '../providers/home_overview_provider.dart';
 import '../providers/theme_mode_provider.dart';
 import '../widgets/home_search_section.dart';
@@ -87,17 +91,12 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
     super.dispose();
   }
 
-  void _scrollToLatest() {
-    if (!_scrollController.hasClients) {
-      return;
-    }
-
-    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-  }
-
   @override
   Widget build(BuildContext context) {
     final tickets = ref.watch(myTicketsProvider);
+    final paymentRecords = ref
+        .read(paymentCoordinatorProvider)
+      .activeTicketRecords();
 
     return tickets.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -108,35 +107,125 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
         ),
       ),
       data: (items) {
-        if (items.isEmpty) {
+        if (items.isEmpty && paymentRecords.isEmpty) {
           return Center(
-            child: Text('No booked tickets yet', style: AppTypography.bodyMd),
+            child: Text('No tickets yet', style: AppTypography.bodyMd),
           );
         }
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          _scrollToLatest();
+          if (mounted && _scrollController.hasClients) {
+            _scrollController.jumpTo(
+              _scrollController.position.maxScrollExtent,
+            );
+          }
         });
 
         return ListView.separated(
           controller: _scrollController,
           padding: AppSpacing.screenPadding,
-          itemCount: items.length,
+          itemCount: items.length + paymentRecords.length,
           separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
           itemBuilder: (context, index) {
-            final ticket = items[index];
+            if (index < items.length) {
+              final ticket = items[index];
+              return UpcomingTicketCard(
+                from: ticket.from,
+                to: ticket.to,
+                departureTime: ticket.departureDateTime,
+                seatNumber: ticket.seatNumber,
+                status: BookingPaymentStatus.booked,
+                onTap: () =>
+                    context.push(AppRoutes.ticketDetails, extra: ticket),
+              );
+            }
+
+            final paymentRecord = paymentRecords[index - items.length];
             return UpcomingTicketCard(
-              from: ticket.from,
-              to: ticket.to,
-              departureTime: ticket.departureDateTime,
-              seatNumber: ticket.seatNumber,
-              onTap: () => context.push(AppRoutes.ticketDetails, extra: ticket),
+              from: _displayDeparture(paymentRecord),
+              to: _displayDestination(paymentRecord),
+              departureTime: paymentRecord.updatedAt.toIso8601String(),
+              seatNumber: paymentRecord.seatNumbers.join(', '),
+              status: paymentRecord.status,
+              onTap: () {
+                if (paymentRecord.status == BookingPaymentStatus.pending) {
+                  _openPendingPayment(context, paymentRecord);
+                }
+              },
             );
           },
         );
       },
     );
+  }
+
+  String _displayDeparture(PaymentBookingRecord pending) {
+    final departure = pending.departureCity?.trim();
+    if (departure != null && departure.isNotEmpty) {
+      return departure;
+    }
+
+    final vehicleName = pending.vehicleName?.trim();
+    if (vehicleName != null && vehicleName.isNotEmpty) {
+      return vehicleName;
+    }
+
+    return 'Pending Route';
+  }
+
+  String _displayDestination(PaymentBookingRecord pending) {
+    final destination = pending.destinationCity?.trim();
+    if (destination != null && destination.isNotEmpty) {
+      return destination;
+    }
+
+    return 'Awaiting Payment';
+  }
+
+  Future<void> _openPendingPayment(
+    BuildContext context,
+    PaymentBookingRecord pending,
+  ) async {
+    final paymentUrl = pending.paymentUrl?.trim();
+    if (paymentUrl == null || paymentUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Payment session expired. Please rebook your seat.'),
+        ),
+      );
+      return;
+    }
+
+    final paymentStatus = await context.push<BookingPaymentStatus>(
+      AppRoutes.khaltiCheckout,
+      extra: KhaltiCheckoutArgs(
+        busId: pending.busId,
+        purchaseOrderId: pending.purchaseOrderId,
+        pidx: pending.pidx,
+        paymentUrl: paymentUrl,
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (paymentStatus == BookingPaymentStatus.booked) {
+      context.go(AppRoutes.bookingSuccess);
+      return;
+    }
+
+    setState(() {});
+
+    final feedback = switch (paymentStatus) {
+      BookingPaymentStatus.pending =>
+        'Payment is still pending. Complete payment to confirm your ticket.',
+      BookingPaymentStatus.cancelled ||
+      null => 'Payment cancelled or failed.',
+      BookingPaymentStatus.booked => '',
+    };
+
+    if (feedback.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(feedback)));
+    }
   }
 }
 

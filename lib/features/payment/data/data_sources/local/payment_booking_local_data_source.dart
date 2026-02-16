@@ -1,3 +1,5 @@
+import 'package:graphql_flutter/graphql_flutter.dart';
+
 import '../../../../../config/app_config.dart';
 import '../../../../../core/error/exceptions.dart';
 import '../../../../../core/storage/hive_service.dart';
@@ -11,9 +13,18 @@ abstract class PaymentBookingLocalDataSource {
 }
 
 class PaymentBookingLocalDataSourceImpl implements PaymentBookingLocalDataSource {
-  PaymentBookingLocalDataSourceImpl(this._hiveService);
+  PaymentBookingLocalDataSourceImpl(this._client, this._hiveService);
 
+  final GraphQLClient _client;
   final HiveService _hiveService;
+
+  static const _savePaymentBookingMutation = r'''
+    mutation SavePaymentBooking($input: PaymentBookingInput!) {
+      savePaymentBooking(input: $input) {
+        success
+      }
+    }
+  ''';
 
   @override
   Future<void> saveBookingRecord(PaymentBookingRecord record) async {
@@ -88,9 +99,29 @@ class PaymentBookingLocalDataSourceImpl implements PaymentBookingLocalDataSource
   Future<void> _writeRecords(List<PaymentBookingRecord> records) async {
     final payload = records.map((item) => item.toJson()).toList();
     try {
-      await _hiveService.write(AppConfig.paymentBookingsJsonKey, payload);
+      final mutationResult = await _client.mutate(
+        MutationOptions(
+          document: gql(_savePaymentBookingMutation),
+          operationName: 'SavePaymentBooking',
+          variables: <String, dynamic>{
+            'input': <String, dynamic>{
+              'records': payload,
+            },
+          },
+        ),
+      );
+
+      if (mutationResult.hasException) {
+        throw CacheException(mutationResult.exception.toString());
+      }
     } catch (error) {
-      throw CacheException('Unable to save payment booking state: $error');
+      try {
+        await _hiveService.write(AppConfig.paymentBookingsJsonKey, payload);
+      } catch (fallbackError) {
+        throw CacheException(
+          'Unable to save payment booking state: $error | fallback: $fallbackError',
+        );
+      }
     }
   }
 }

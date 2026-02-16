@@ -46,6 +46,8 @@ class MockGraphqlLink extends Link {
         'GetMyTickets': (_) => _handleGetMyTickets(),
         'GetSettings': (_) => _handleGetSettings(),
         'BookTicket': _handleBookTicket,
+        'GetPaymentBookings': (_) => _handleGetPaymentBookings(),
+        'SavePaymentBooking': _handleSavePaymentBooking,
       };
 
   static const _source = <String, dynamic>{'source': 'mock_link'};
@@ -108,8 +110,8 @@ class MockGraphqlLink extends Link {
     return mapped.isEmpty ? null : mapped;
   }
 
-  List<Map<String, dynamic>> _readBookedTicketsFromHive() {
-    final hiveValue = _appBox.get(AppConfig.bookedTicketsJsonKey);
+  List<Map<String, dynamic>> _readPaymentBookingsFromHive() {
+    final hiveValue = _appBox.get(AppConfig.paymentBookingsJsonKey);
     if (hiveValue is! List) {
       return const <Map<String, dynamic>>[];
     }
@@ -125,16 +127,22 @@ class MockGraphqlLink extends Link {
       return <String>{};
     }
 
-    final bookedTickets = _readBookedTicketsFromHive();
+    final paymentBookings = _readPaymentBookingsFromHive();
     final output = <String>{};
 
-    for (final item in bookedTickets) {
+    for (final item in paymentBookings) {
       if (item['busId']?.toString() != busId) {
         continue;
       }
 
+      if ((item['status']?.toString().toLowerCase() ?? '') != 'booked') {
+        continue;
+      }
+
       final seats =
-          item['selectedSeats'] as List<dynamic>? ?? const <dynamic>[];
+          item['seatNumbers'] as List<dynamic>? ??
+          item['selectedSeats'] as List<dynamic>? ??
+          const <dynamic>[];
       for (final seat in seats) {
         output.add(seat.toString().toUpperCase());
       }
@@ -165,16 +173,25 @@ class MockGraphqlLink extends Link {
   }
 
   List<Map<String, dynamic>> _toMyTicketsPayload(
-    List<Map<String, dynamic>> bookedTickets,
+    List<Map<String, dynamic>> paymentBookings,
   ) {
     final output = <Map<String, dynamic>>[];
 
-    for (var index = 0; index < bookedTickets.length; index++) {
-      final item = bookedTickets[index];
+    for (var index = 0; index < paymentBookings.length; index++) {
+      final item = paymentBookings[index];
+      if ((item['status']?.toString().toLowerCase() ?? '') != 'booked') {
+        continue;
+      }
+
       final selectedSeats =
-          (item['selectedSeats'] as List<dynamic>? ?? const <dynamic>[])
+          ((item['seatNumbers'] as List<dynamic>? ??
+                      item['selectedSeats'] as List<dynamic>?) ??
+                  const <dynamic>[])
               .map((seat) => seat.toString())
               .toList();
+
+      final departureTime =
+          item['updatedAt']?.toString() ?? item['bookedAt']?.toString() ?? '';
 
       for (final seat in selectedSeats) {
         output.add(<String, dynamic>{
@@ -185,7 +202,7 @@ class MockGraphqlLink extends Link {
               'Booked via mobile app • Total Rs ${item['totalPrice'] ?? 0}',
           'from': item['departureCity']?.toString() ?? 'Unknown',
           'to': item['destinationCity']?.toString() ?? 'Unknown',
-          'departureDateTime': item['bookedAt']?.toString() ?? '',
+          'departureDateTime': departureTime,
           'departurePoint': item['departureCity']?.toString() ?? 'N/A',
           'seatNumber': seat,
         });
@@ -255,10 +272,11 @@ class MockGraphqlLink extends Link {
   }
 
   Future<Response> _handleGetMyTickets() async {
-    final bookedTickets = _readBookedTicketsFromHive();
-    if (bookedTickets.isNotEmpty) {
+    final paymentBookings = _readPaymentBookingsFromHive();
+    final myTickets = _toMyTicketsPayload(paymentBookings);
+    if (myTickets.isNotEmpty) {
       return _success(<String, dynamic>{
-        'myTickets': _toMyTicketsPayload(bookedTickets),
+        'myTickets': myTickets,
       });
     }
 
@@ -272,6 +290,27 @@ class MockGraphqlLink extends Link {
     final data = await _homeOverviewFuture;
     return _success(<String, dynamic>{
       'settings': _requireMap(data, 'settings'),
+    });
+  }
+
+  Future<Response> _handleGetPaymentBookings() async {
+    final paymentBookings = _readPaymentBookingsFromHive();
+    return _success(<String, dynamic>{'paymentBookings': paymentBookings});
+  }
+
+  Future<Response> _handleSavePaymentBooking(Map<String, dynamic> variables) async {
+    final input =
+        variables['input'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final records = input['records'] as List<dynamic>? ?? const <dynamic>[];
+
+    final normalized = records
+        .whereType<Map<dynamic, dynamic>>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+
+    await _appBox.put(AppConfig.paymentBookingsJsonKey, normalized);
+    return _success(<String, dynamic>{
+      'savePaymentBooking': <String, dynamic>{'success': true},
     });
   }
 
