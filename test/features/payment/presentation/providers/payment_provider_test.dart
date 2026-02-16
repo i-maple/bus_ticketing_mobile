@@ -242,6 +242,41 @@ void main() {
       expect(held, containsAll(['1A', '1B']));
       expect(held, isNot(contains('2A')));
     });
+
+    test('activeTicketRecords maps expired pending entries to cancelled', () {
+      localDataSource.records.addAll([
+        PaymentBookingRecord(
+          busId: 'bus-1',
+          purchaseOrderId: 'po-active',
+          pidx: 'pidx-active',
+          status: BookingPaymentStatus.pending,
+          updatedAt: DateTime(2026, 2, 16, 10, 0, 0),
+          seatNumbers: const ['1A'],
+        ),
+        PaymentBookingRecord(
+          busId: 'bus-1',
+          purchaseOrderId: 'po-expired',
+          pidx: 'pidx-expired',
+          status: BookingPaymentStatus.pending,
+          updatedAt: DateTime(2026, 2, 16, 9, 40, 0),
+          seatNumbers: const ['1B'],
+        ),
+      ]);
+
+      final records = coordinator.activeTicketRecords(
+        now: DateTime(2026, 2, 16, 10, 3, 0),
+      );
+
+      final active = records.firstWhere(
+        (item) => item.purchaseOrderId == 'po-active',
+      );
+      final expired = records.firstWhere(
+        (item) => item.purchaseOrderId == 'po-expired',
+      );
+
+      expect(active.status, BookingPaymentStatus.pending);
+      expect(expired.status, BookingPaymentStatus.cancelled);
+    });
   });
 
   group('KhaltiCheckoutHandler', () {

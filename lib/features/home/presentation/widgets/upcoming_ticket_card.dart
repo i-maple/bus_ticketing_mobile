@@ -110,12 +110,12 @@ class UpcomingTicketCard extends StatelessWidget {
         colorScheme.onPrimaryContainer,
       ),
       BookingPaymentStatus.pending => _StatusBadgeColors(
-        colorScheme.error,
-        colorScheme.onError,
+        colorScheme.inversePrimary,
+        colorScheme.onInverseSurface,
       ),
       BookingPaymentStatus.cancelled => _StatusBadgeColors(
-        colorScheme.errorContainer,
-        colorScheme.onErrorContainer,
+        colorScheme.error,
+        colorScheme.onError,
       ),
     };
   }

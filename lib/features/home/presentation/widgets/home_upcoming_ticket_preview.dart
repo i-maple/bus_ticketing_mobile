@@ -31,10 +31,15 @@ class HomeUpcomingTicketPreview extends ConsumerWidget {
       data: (tickets) {
         final groupedBookedTickets = _groupTicketsBySession(tickets);
         final pendingRecords = paymentRecords
-            .where((record) => record.status == BookingPaymentStatus.pending)
+          .where((record) => record.status == BookingPaymentStatus.pending)
+          .toList();
+        final cancelledRecords = paymentRecords
+          .where((record) => record.status == BookingPaymentStatus.cancelled)
             .toList();
 
-        if (groupedBookedTickets.isEmpty && pendingRecords.isEmpty) {
+        if (groupedBookedTickets.isEmpty &&
+          pendingRecords.isEmpty &&
+          cancelledRecords.isEmpty) {
           return Text('No upcoming tickets', style: AppTypography.bodyMd);
         }
 
@@ -51,6 +56,18 @@ class HomeUpcomingTicketPreview extends ConsumerWidget {
                 _openPendingPayment(context, paymentRecord);
               }
             },
+          );
+        }
+
+        if (cancelledRecords.isNotEmpty) {
+          final paymentRecord = cancelledRecords.last;
+          return UpcomingTicketCard(
+            from: _displayDeparture(paymentRecord),
+            to: _displayDestination(paymentRecord),
+            departureTime: paymentRecord.updatedAt.toIso8601String(),
+            seatNumber: paymentRecord.seatNumbers.join(', '),
+            status: paymentRecord.status,
+            onTap: () {},
           );
         }
 

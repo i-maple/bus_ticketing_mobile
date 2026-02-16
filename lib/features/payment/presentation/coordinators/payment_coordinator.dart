@@ -176,15 +176,41 @@ class PaymentCoordinator {
 
     return _localDataSource
         .getBookingRecords()
-        .where((record) {
-          if (record.status == BookingPaymentStatus.pending) {
-            return currentTime.difference(record.updatedAt) <=
-                pendingHoldDuration;
-          }
-
-          return record.status == BookingPaymentStatus.booked;
-        })
+        .map((record) => _normalizeTicketRecord(record, now: currentTime))
+        .where(
+          (record) =>
+              record.status == BookingPaymentStatus.pending ||
+              record.status == BookingPaymentStatus.booked ||
+              record.status == BookingPaymentStatus.cancelled,
+        )
         .toList();
+  }
+
+  PaymentBookingRecord _normalizeTicketRecord(
+    PaymentBookingRecord record, {
+    required DateTime now,
+  }) {
+    final isExpiredPending =
+        record.status == BookingPaymentStatus.pending &&
+        now.difference(record.updatedAt) > pendingHoldDuration;
+
+    if (!isExpiredPending) {
+      return record;
+    }
+
+    return PaymentBookingRecord(
+      busId: record.busId,
+      purchaseOrderId: record.purchaseOrderId,
+      pidx: record.pidx,
+      status: BookingPaymentStatus.cancelled,
+      updatedAt: record.updatedAt,
+      transactionId: record.transactionId,
+      vehicleName: record.vehicleName,
+      departureCity: record.departureCity,
+      destinationCity: record.destinationCity,
+      seatNumbers: record.seatNumbers,
+      paymentUrl: record.paymentUrl,
+    );
   }
 
   Future<void> recoverPendingPayments() async {

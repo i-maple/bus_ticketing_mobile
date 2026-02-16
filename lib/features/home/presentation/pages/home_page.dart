@@ -109,11 +109,11 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
       ),
       data: (items) {
         final groupedBookedTickets = _groupTicketsBySession(items);
-        final pendingRecords = paymentRecords
-            .where((record) => record.status == BookingPaymentStatus.pending)
+        final nonBookedRecords = paymentRecords
+            .where((record) => record.status != BookingPaymentStatus.booked)
             .toList();
 
-        if (groupedBookedTickets.isEmpty && pendingRecords.isEmpty) {
+        if (groupedBookedTickets.isEmpty && nonBookedRecords.isEmpty) {
           return Center(
             child: Text('No tickets yet', style: AppTypography.bodyMd),
           );
@@ -130,7 +130,7 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
         return ListView.separated(
           controller: _scrollController,
           padding: AppSpacing.screenPadding,
-          itemCount: groupedBookedTickets.length + pendingRecords.length,
+          itemCount: groupedBookedTickets.length + nonBookedRecords.length,
           separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
           itemBuilder: (context, index) {
             if (index < groupedBookedTickets.length) {
@@ -148,7 +148,7 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
             }
 
             final paymentRecord =
-                pendingRecords[index - groupedBookedTickets.length];
+              nonBookedRecords[index - groupedBookedTickets.length];
             return UpcomingTicketCard(
               from: _displayDeparture(paymentRecord),
               to: _displayDestination(paymentRecord),
@@ -158,6 +158,10 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
               onTap: () {
                 if (paymentRecord.status == BookingPaymentStatus.pending) {
                   _openPendingPayment(context, paymentRecord);
+                }
+                else if(paymentRecord.status == BookingPaymentStatus.cancelled) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('This booking was cancelled.')));
                 }
               },
             );
