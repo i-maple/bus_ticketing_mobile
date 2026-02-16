@@ -34,7 +34,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       body: IndexedStack(
         index: _currentIndex,
-        children: const [_HomeTab(), _TicketsTab(), _SettingsTab()],
+        children: [
+          _HomeTab(onSeeAllTickets: () => setState(() => _currentIndex = 1)),
+          const _TicketsTab(),
+          const _SettingsTab(),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -62,14 +66,16 @@ class _HomePageState extends ConsumerState<HomePage> {
 }
 
 class _HomeTab extends ConsumerWidget {
-  const _HomeTab();
+  const _HomeTab({required this.onSeeAllTickets});
+
+  final VoidCallback onSeeAllTickets;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
       padding: AppSpacing.screenPadding,
       children: [
-        const HomeSearchSection(),
+        HomeSearchSection(onSeeAllTickets: onSeeAllTickets),
         const SizedBox(height: AppSpacing.xl),
       ],
     );
@@ -112,29 +118,27 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
         final nonBookedRecords = paymentRecords
             .where((record) => record.status != BookingPaymentStatus.booked)
             .toList();
+        final ticketCards = _buildSortedTicketCards(
+          groupedBookedTickets: groupedBookedTickets,
+          nonBookedRecords: nonBookedRecords,
+        );
 
-        if (groupedBookedTickets.isEmpty && nonBookedRecords.isEmpty) {
+        if (ticketCards.isEmpty) {
           return Center(
             child: Text('No tickets yet', style: AppTypography.bodyMd),
           );
         }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _scrollController.hasClients) {
-            _scrollController.jumpTo(
-              _scrollController.position.maxScrollExtent,
-            );
-          }
-        });
-
         return ListView.separated(
           controller: _scrollController,
           padding: AppSpacing.screenPadding,
-          itemCount: groupedBookedTickets.length + nonBookedRecords.length,
+          itemCount: ticketCards.length,
           separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
           itemBuilder: (context, index) {
-            if (index < groupedBookedTickets.length) {
-              final groupedSession = groupedBookedTickets[index];
+            final ticketCard = ticketCards[index];
+
+            if (ticketCard.groupedSession != null) {
+              final groupedSession = ticketCard.groupedSession!;
               final ticket = groupedSession.tickets.first;
               return UpcomingTicketCard(
                 from: ticket.from,
@@ -147,8 +151,7 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
               );
             }
 
-            final paymentRecord =
-              nonBookedRecords[index - groupedBookedTickets.length];
+            final paymentRecord = ticketCard.paymentRecord!;
             return UpcomingTicketCard(
               from: _displayDeparture(paymentRecord),
               to: _displayDestination(paymentRecord),
@@ -169,6 +172,32 @@ class _TicketsTabState extends ConsumerState<_TicketsTab> {
         );
       },
     );
+  }
+
+  List<_TicketCardItem> _buildSortedTicketCards({
+    required List<_GroupedTicketSession> groupedBookedTickets,
+    required List<PaymentBookingRecord> nonBookedRecords,
+  }) {
+    final cards = <_TicketCardItem>[
+      ...groupedBookedTickets.map((groupedSession) {
+        final departure = DateTime.tryParse(
+          groupedSession.tickets.first.departureDateTime,
+        );
+        return _TicketCardItem(
+          sortAt: departure ?? DateTime.fromMillisecondsSinceEpoch(0),
+          groupedSession: groupedSession,
+        );
+      }),
+      ...nonBookedRecords.map(
+        (paymentRecord) => _TicketCardItem(
+          sortAt: paymentRecord.updatedAt,
+          paymentRecord: paymentRecord,
+        ),
+      ),
+    ];
+
+    cards.sort((a, b) => b.sortAt.compareTo(a.sortAt));
+    return cards;
   }
 
   List<_GroupedTicketSession> _groupTicketsBySession(
@@ -280,6 +309,21 @@ class _GroupedTicketSession {
 
   final List<MyTicketEntity> tickets;
   final List<String> seatNumbers;
+}
+
+class _TicketCardItem {
+  const _TicketCardItem({
+    required this.sortAt,
+    this.groupedSession,
+    this.paymentRecord,
+  }) : assert(
+         groupedSession != null || paymentRecord != null,
+         'Either groupedSession or paymentRecord must be provided.',
+       );
+
+  final DateTime sortAt;
+  final _GroupedTicketSession? groupedSession;
+  final PaymentBookingRecord? paymentRecord;
 }
 
 class _SettingsTab extends ConsumerWidget {

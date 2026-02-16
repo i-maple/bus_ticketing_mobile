@@ -10,7 +10,10 @@ import 'home_upcoming_ticket_preview.dart';
 import 'search_input_field.dart';
 
 class HomeSearchSection extends ConsumerStatefulWidget {
-  const HomeSearchSection({super.key});
+  const HomeSearchSection({super.key, this.onSeeAllTickets});
+
+  final VoidCallback? onSeeAllTickets;
+
   @override
   ConsumerState<HomeSearchSection> createState() => _HomeSearchSectionState();
 }
@@ -163,7 +166,10 @@ class _HomeSearchSectionState extends ConsumerState<HomeSearchSection> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Upcoming Tickets', style: AppTypography.headingMd),
-            TextButton(onPressed: () {}, child: const Text('See all')),
+            TextButton(
+              onPressed: widget.onSeeAllTickets,
+              child: const Text('See all'),
+            ),
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
