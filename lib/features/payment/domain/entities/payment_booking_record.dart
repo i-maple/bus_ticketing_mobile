@@ -12,6 +12,7 @@ class PaymentBookingRecord {
     this.departureCity,
     this.destinationCity,
     this.seatNumbers = const [],
+    this.paymentUrl,
   });
 
   final String busId;
@@ -24,6 +25,7 @@ class PaymentBookingRecord {
   final String? departureCity;
   final String? destinationCity;
   final List<String> seatNumbers;
+  final String? paymentUrl;
 
   Map<String, dynamic> toJson() {
     return {
@@ -37,6 +39,7 @@ class PaymentBookingRecord {
       'departureCity': departureCity,
       'destinationCity': destinationCity,
       'seatNumbers': seatNumbers,
+      'paymentUrl': paymentUrl,
     };
   }
 
@@ -56,6 +59,7 @@ class PaymentBookingRecord {
       seatNumbers: (json['seatNumbers'] as List<dynamic>? ?? const <dynamic>[])
           .map((item) => item.toString())
           .toList(),
+      paymentUrl: json['paymentUrl']?.toString(),
     );
   }
 }
