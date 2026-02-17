@@ -26,6 +26,7 @@ class PaymentCoordinator {
   final PaymentBookingLocalDataSource _localDataSource;
 
   static const Duration pendingHoldDuration = Duration(minutes: 5);
+  static const int AMOUNT_IN_PAISA_MULTIPLIER = 100;
 
   Future<Either<Failure, KhaltiCheckoutSession>> startCheckout({
     required String busId,
@@ -42,7 +43,7 @@ class PaymentCoordinator {
       KhaltiInitiateParams(
         returnUrl: AppConfig.khaltiReturnUrl,
         websiteUrl: AppConfig.khaltiWebsiteUrl,
-        amount: amount,
+        amount: amount * AMOUNT_IN_PAISA_MULTIPLIER,
         purchaseOrderId: purchaseOrderId,
         purchaseOrderName: purchaseOrderName,
       ),
