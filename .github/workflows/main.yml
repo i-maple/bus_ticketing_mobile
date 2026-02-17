@@ -67,7 +67,7 @@ jobs:
           channel: "stable"
       - run: flutter pub get
       - run: flutter clean
-      - run: flutter build apk --release --split-per-abi
+      - run: flutter build apk --release --split-per-abi --dart-define=KHALTI_SECRET_KEY={{ secrets.KHALTI_SECRET_KEY }}
       - uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/flutter-apk/*.apk"
